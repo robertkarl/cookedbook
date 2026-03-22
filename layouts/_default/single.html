@@ -1,7 +1,7 @@
 {{ define "main" }}
 <article class="recipe">
   <h1>{{ .Title }}</h1>
-  {{ with .Params.summary }}<p class="recipe-summary">{{ . }}</p>{{ end }}
+  {{ with .Params.summary }}<p class="recipe-summary">{{ . | markdownify }}</p>{{ end }}
   <div class="recipe-meta">
     {{ with .Params.prep_time }}<span class="meta-item">Prep: {{ . }}</span>{{ end }}
     {{ with .Params.cook_time }}<span class="meta-item">Cook: {{ . }}</span>{{ end }}

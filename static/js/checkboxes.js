@@ -1,17 +1,35 @@
 function initCheckboxes(recipeId) {
-  const stored = JSON.parse(localStorage.getItem('cb-' + recipeId) || '{}');
-  const content = document.querySelector('.recipe-content');
+  var stored = JSON.parse(localStorage.getItem('cb-' + recipeId) || '{}');
+  var content = document.querySelector('.recipe-content');
   if (!content) return;
 
-  const items = content.querySelectorAll('li');
+  // Find all h2s that indicate "no checkboxes from here down"
+  var skipIds = ['notes'];
+  var skipEls = new Set();
+  content.querySelectorAll('h2').forEach(function (h) {
+    var text = h.textContent.toLowerCase();
+    if (text.indexOf('note') !== -1) {
+      // Walk all siblings after this h2 until the next h2
+      var el = h.nextElementSibling;
+      while (el && el.tagName !== 'H2') {
+        var lis = el.querySelectorAll ? el.querySelectorAll('li') : [];
+        lis.forEach(function (li) { skipEls.add(li); });
+        el = el.nextElementSibling;
+      }
+    }
+  });
+
+  var items = content.querySelectorAll('li');
   items.forEach(function (li, i) {
-    const cb = document.createElement('input');
+    if (skipEls.has(li)) return;
+
+    var cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.checked = !!stored[i];
     if (cb.checked) li.classList.add('checked');
 
     cb.addEventListener('change', function () {
-      const state = JSON.parse(localStorage.getItem('cb-' + recipeId) || '{}');
+      var state = JSON.parse(localStorage.getItem('cb-' + recipeId) || '{}');
       if (cb.checked) {
         state[i] = true;
         li.classList.add('checked');
