@@ -1,12 +1,20 @@
 ---
 title: "Alan Thrall Oven Roasted Chicken"
 summary: "Broken-down parts roasted on a rack over aromatics with herb butter."
-source: "Alan Thrall (YouTube)"
+source: "[Alan Thrall (YouTube)](https://www.youtube.com/watch?v=TLGA36TDWIo)"
 prep_time: "20 min"
 cook_time: "1 hour"
 servings: "4–6 per chicken"
 tags: ["chicken", "roast", "herb butter", "whole chicken"]
 ---
+
+Executed well, this has a crispy, crunchy skin and interior that's not stringy.
+Serve straight from the aluminum pan or cast iron onto a plate.
+
+I frequently use a quarter pan (12x8 pan) with a nonstick rack, or a large cast iron skillet
+with a non-stick rack on top. Cooking times vary based on the container, so go by the temperature (165º).
+
+Save the chicken carcass and leftover garlic and lemons and such, and make stock.
 
 ## Ingredients (per chicken)
 
@@ -20,11 +28,10 @@ tags: ["chicken", "roast", "herb butter", "whole chicken"]
 
 - 4–6 Tbsp softened unsalted butter
 - ¼ cup olive oil
-- 4 cloves garlic, chopped
-- 1 Tbsp fresh sage, chopped
+- 4 cloves garlic, chopped. Use 4 tbsp if using pre-chopped garlic.
+- 1 Tbsp fresh sage, chopped. Use smaller quantities if using dried rosemary/thyme etc.
 - 1 Tbsp fresh thyme, chopped
-- 1 Tbsp fresh rosemary, chopped
-- Juice of 1 lemon
+- 1 Tbsp fresh rosemary, chopped. - Juice of 1 lemon
 
 ### Roasting Bed
 
@@ -37,7 +44,7 @@ tags: ["chicken", "roast", "herb butter", "whole chicken"]
 
 1. Place chicken breast-side up
 2. **Legs:** Slice through skin between leg and body, pop thigh bone out of socket, cut through joint
-3. **Separate thigh from drumstick:** Find joint, slice through
+3. **(Optional) Separate thigh from drumstick:** Find joint, slice through.
 4. **Wings:** Pop joint, cut through
 5. **Breasts:** Slice down center of breastbone, cut away from carcass
 
@@ -64,12 +71,17 @@ Save carcass for stock if you're not a savage.
 
 ## Notes
 
-- Breasts may finish before dark meat — pull early if needed to avoid dryness
-- Let rest 5–10 minutes before serving
-- Pan drippings + aromatics make excellent gravy base
-- Breaking down raw is easier than carving cooked
+Take extra time for this the first time you are carving up a whole chicken. It gets much faster.
 
-## Scaling (for Meat Club)
+Breasts may finish before dark meat — pull early if needed to avoid dryness
+
+Pan drippings + aromatics make excellent gravy base
+
+Breaking down raw is easier than carving cooked
+
+Check the temp is at or above 165 or so, that's the signal for doneness, not the time.
+
+## Scaling to fill an oven with three chickens
 
 | Ingredient | x1 | x3 |
 |---|---|---|

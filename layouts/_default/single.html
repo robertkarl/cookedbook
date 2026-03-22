@@ -6,7 +6,7 @@
     {{ with .Params.prep_time }}<span class="meta-item">Prep: {{ . }}</span>{{ end }}
     {{ with .Params.cook_time }}<span class="meta-item">Cook: {{ . }}</span>{{ end }}
     {{ with .Params.servings }}<span class="meta-item">Serves: {{ . }}</span>{{ end }}
-    {{ with .Params.source }}<span class="meta-item">Source: {{ . }}</span>{{ end }}
+    {{ with .Params.source }}<span class="meta-item">Source: {{ . | markdownify }}</span>{{ end }}
   </div>
   {{ if .Params.tags }}
   <div class="recipe-tags">
