@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ if .IsHome }}Cookedbook{{ else }}{{ .Title }} — Cookedbook{{ end }}</title>
+  <link rel="stylesheet" href="{{ "css/style.css" | relURL }}">
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="{{ "/" | relURL }}" class="nav-brand">Cookedbook</a>
+    <div class="nav-links">
+      <a href="{{ "/recipes/" | relURL }}">All Recipes</a>
+      <a href="{{ "/search/" | relURL }}">Search</a>
+    </div>
+  </nav>
+  <main>
+    {{ block "main" . }}{{ end }}
+  </main>
+  <footer>
+    <p>No ads. No life stories. Just recipes.</p>
+  </footer>
+  {{ block "scripts" . }}{{ end }}
+</body>
+</html>

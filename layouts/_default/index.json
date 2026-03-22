@@ -1,0 +1,12 @@
+{{- $recipes := slice -}}
+{{- range (where .Site.RegularPages "Section" "recipes") -}}
+  {{- $recipe := dict
+    "title" .Title
+    "permalink" .RelPermalink
+    "summary" (.Params.summary | default "")
+    "tags" (.Params.tags | default slice)
+    "content" (.Plain | truncate 500)
+  -}}
+  {{- $recipes = $recipes | append $recipe -}}
+{{- end -}}
+{{ $recipes | jsonify }}

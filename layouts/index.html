@@ -1,0 +1,24 @@
+{{ define "main" }}
+<div class="hero">
+  <h1>Cookedbook</h1>
+  <p class="hero-tagline">Recipes for people who are cooking, not scrolling.</p>
+  <div class="hero-actions">
+    <a href="{{ "/recipes/" | relURL }}" class="btn btn-primary">Browse Recipes</a>
+    <a href="{{ "/search/" | relURL }}" class="btn btn-secondary">Search</a>
+  </div>
+</div>
+
+<h2>Recipes</h2>
+<div class="recipe-list">
+  {{ range (where .Site.RegularPages "Section" "recipes").ByTitle }}
+  <a href="{{ .RelPermalink }}" class="recipe-card">
+    <h2>{{ .Title }}</h2>
+    {{ with .Params.summary }}<p>{{ . }}</p>{{ end }}
+    <div class="card-meta">
+      {{ with .Params.prep_time }}<span>Prep: {{ . }}</span>{{ end }}
+      {{ with .Params.cook_time }}<span>Cook: {{ . }}</span>{{ end }}
+    </div>
+  </a>
+  {{ end }}
+</div>
+{{ end }}

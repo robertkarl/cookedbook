@@ -1,0 +1,23 @@
+{{ define "main" }}
+<h1>{{ .Title | default "All Recipes" }}</h1>
+{{ with .Content }}<div class="section-intro">{{ . }}</div>{{ end }}
+
+<div class="recipe-list">
+  {{ range .Pages.ByTitle }}
+  <a href="{{ .RelPermalink }}" class="recipe-card">
+    <h2>{{ .Title }}</h2>
+    {{ with .Params.summary }}<p>{{ . }}</p>{{ end }}
+    <div class="card-meta">
+      {{ with .Params.prep_time }}<span>Prep: {{ . }}</span>{{ end }}
+      {{ with .Params.cook_time }}<span>Cook: {{ . }}</span>{{ end }}
+      {{ with .Params.servings }}<span>Serves: {{ . }}</span>{{ end }}
+    </div>
+    {{ if .Params.tags }}
+    <div class="card-tags">
+      {{ range .Params.tags }}<span class="tag">{{ . }}</span>{{ end }}
+    </div>
+    {{ end }}
+  </a>
+  {{ end }}
+</div>
+{{ end }}

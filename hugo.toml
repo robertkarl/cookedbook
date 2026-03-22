@@ -1,0 +1,18 @@
+baseURL = 'https://cookedbook.net/'
+languageCode = 'en-us'
+title = 'Cookedbook'
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
+[params]
+  description = "Recipes for people who are cooking, not scrolling."
+
+[outputs]
+  home = ["HTML", "JSON"]
