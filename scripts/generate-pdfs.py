@@ -5,14 +5,14 @@ import sys
 from pathlib import Path
 
 try:
-    from weasyprint import HTML
+    from weasyprint import HTML, CSS
 except ImportError:
     print("weasyprint not installed — skipping PDF generation", file=sys.stderr)
     sys.exit(0)
 
 PUBLIC = Path("public").resolve()
 RECIPES = PUBLIC / "recipes"
-BASE_URL = PUBLIC.as_uri() + "/"
+STYLESHEET = CSS(filename=str(PUBLIC / "css" / "style.css"))
 
 if not RECIPES.is_dir():
     print(f"No recipes directory at {RECIPES}", file=sys.stderr)
@@ -24,7 +24,7 @@ for index_html in sorted(RECIPES.glob("*/index.html")):
     pdf_name = f"{recipe_dir.name}.pdf"
     pdf_path = recipe_dir / pdf_name
     print(f"  {recipe_dir.name} → {pdf_name}")
-    HTML(filename=str(index_html), base_url=BASE_URL).write_pdf(str(pdf_path))
+    HTML(filename=str(index_html)).write_pdf(str(pdf_path), stylesheets=[STYLESHEET])
     count += 1
 
 print(f"Generated {count} PDFs")
