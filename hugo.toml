@@ -1,6 +1,6 @@
 baseURL = 'https://cookedbook.net/'
 languageCode = 'en-us'
-title = 'Cookedbook'
+title = 'CookedBook'
 
 [markup]
   [markup.goldmark]

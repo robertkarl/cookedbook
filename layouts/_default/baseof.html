@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ if .IsHome }}Cookedbook{{ else }}{{ .Title }} — Cookedbook{{ end }}</title>
+  <title>{{ if .IsHome }}CookedBook{{ else }}{{ .Title }} — CookedBook{{ end }}</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥩</text></svg>">
   <link rel="stylesheet" href="{{ "css/style.css" | relURL }}">
 </head>
 <body>
   <nav class="site-nav">
-    <a href="{{ "/" | relURL }}" class="nav-brand">Cookedbook</a>
+    <a href="{{ "/" | relURL }}" class="nav-brand">CookedBook</a>
     <div class="nav-links">
       <a href="{{ "/recipes/" | relURL }}">All Recipes</a>
       <a href="{{ "/search/" | relURL }}">Search</a>
