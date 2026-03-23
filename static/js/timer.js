@@ -59,7 +59,12 @@ function runTimer(widget, endTime) {
     var remaining = Math.round((endTime - Date.now()) / 1000);
     if (remaining <= 0) {
       clearInterval(interval);
-      timeSpan.textContent = '0:00';
+      var now = new Date();
+      var hours = now.getHours();
+      var ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12;
+      var mins = String(now.getMinutes()).padStart(2, '0');
+      timeSpan.textContent = 'Done \u2014 ended at ' + hours + ':' + mins + ampm;
       display.classList.add('timer-done');
       clearTimerStorage(widget);
       try {
