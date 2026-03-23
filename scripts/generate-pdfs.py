@@ -20,8 +20,9 @@ if not RECIPES.is_dir():
 count = 0
 for index_html in sorted(RECIPES.glob("*/index.html")):
     recipe_dir = index_html.parent
-    pdf_path = recipe_dir / "recipe.pdf"
-    print(f"  {recipe_dir.name} → recipe.pdf")
+    pdf_name = f"{recipe_dir.name}.pdf"
+    pdf_path = recipe_dir / pdf_name
+    print(f"  {recipe_dir.name} → {pdf_name}")
     HTML(filename=str(index_html)).write_pdf(str(pdf_path))
     count += 1
 

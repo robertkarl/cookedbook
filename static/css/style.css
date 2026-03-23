@@ -423,8 +423,8 @@ footer {
 /* === Print === */
 @media print {
   .site-nav, footer, .clear-btn, .timer-widget, .timer-add, .timer-running,
-  .recipe-content input[type="checkbox"], .btn-pdf, .search-input,
-  .search-suggestions, .hero-actions, .nav-links {
+  .recipe-content input[type="checkbox"], .btn-pdf, .recipe-tags,
+  .search-input, .search-suggestions, .hero-actions, .nav-links {
     display: none !important;
   }
 

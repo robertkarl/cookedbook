@@ -15,7 +15,8 @@
   {{ end }}
 
   {{ if eq .Section "recipes" }}
-  <a href="recipe.pdf" class="btn btn-secondary btn-pdf" download>Download PDF</a>
+  {{ $slug := path.Base (strings.TrimSuffix "/" .RelPermalink) }}
+  <a href="{{ $slug }}.pdf" class="btn btn-secondary btn-pdf" download>Download PDF</a>
   {{ end }}
 
   <div class="recipe-content">
