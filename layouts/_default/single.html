@@ -33,6 +33,7 @@
 {{ if eq .Section "recipes" }}
 <script src="{{ "js/checkboxes.js" | relURL }}"></script>
 <script src="{{ "js/timer.js" | relURL }}"></script>
-<script>initCheckboxes('{{ .File.UniqueID }}');</script>
+<script src="{{ "js/favorites.js" | relURL }}"></script>
+<script>initCheckboxes('{{ .File.UniqueID }}'); initDetailFavorite();</script>
 {{ end }}
 {{ end }}

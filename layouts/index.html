@@ -1,10 +1,12 @@
 {{ define "main" }}
 <div class="hero">
   <div class="hero-actions">
-    <a href="{{ "/recipes/" | relURL }}" class="btn btn-primary">Browse Recipes</a>
+    <a href="{{ "/recipes/" | relURL }}" class="btn btn-primary">Browse All Recipes</a>
     <a href="{{ "/search/" | relURL }}" class="btn btn-secondary">Search</a>
   </div>
 </div>
+<style>.recipe-list { visibility: hidden; }</style>
+<noscript><style>.recipe-list { visibility: visible !important; }</style></noscript>
 <div class="recipe-list">
   {{ range (where .Site.RegularPages "Section" "recipes").ByTitle }}
   <a href="{{ .RelPermalink }}" class="recipe-card">
@@ -17,4 +19,9 @@
   </a>
   {{ end }}
 </div>
+{{ end }}
+
+{{ define "scripts" }}
+<script src="{{ "js/favorites.js" | relURL }}"></script>
+<script>initHomeFavorites();</script>
 {{ end }}

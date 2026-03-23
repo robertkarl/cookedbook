@@ -336,9 +336,9 @@ main {
 
 .timer-add {
   display: inline-block;
-  background: var(--accent-light);
-  color: var(--accent);
-  border: 2px solid var(--accent);
+  background: #dce8f5;
+  color: #2b6cb0;
+  border: 2px solid #2b6cb0;
   border-radius: var(--radius);
   padding: 0.6rem 1.2rem;
   font-size: 1rem;
@@ -350,7 +350,7 @@ main {
 }
 
 .timer-add:hover {
-  background: #d4c0b8;
+  background: #c5d9f0;
 }
 
 .timer-add:active {
@@ -361,7 +361,7 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: var(--accent);
+  background: #2b6cb0;
   color: #fff;
   border-radius: var(--radius);
   padding: 0.6rem 1.2rem;
@@ -399,6 +399,52 @@ main {
   text-align: right;
 }
 
+/* === Favorites === */
+.fav-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  min-width: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fav-btn:active {
+  transform: scale(1.2);
+}
+
+.recipe-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.recipe-title-row .fav-btn {
+  position: static;
+  flex-shrink: 0;
+}
+
+.no-favorites {
+  color: var(--meta);
+  font-style: italic;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.no-favorites a {
+  color: var(--accent);
+}
+
 /* === Footer === */
 footer {
   text-align: center;
@@ -424,7 +470,7 @@ footer {
 @media print {
   .site-nav, footer, .clear-btn, .timer-widget, .timer-add, .timer-running,
   .recipe-content input[type="checkbox"], .btn-pdf, .recipe-tags,
-  .search-input, .search-suggestions, .hero-actions, .nav-links {
+  .search-input, .search-suggestions, .hero-actions, .nav-links, .fav-btn {
     display: none !important;
   }
 
