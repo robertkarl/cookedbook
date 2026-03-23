@@ -33,7 +33,7 @@ Pick 3–4 from each group for variety:
 1. Preheat oven to 425°F. Line a sheet pan with parchment.
 2. Cut all vegetables to roughly the same size. This is the whole secret — even sizes means even cooking.
 3. Toss with olive oil and seasonings on the pan. Spread in a single layer with space between pieces. Use two pans if crowded. Crowding = steaming = sad.
-4. Roast 25–30 minutes, flipping once at the 15-minute mark.
+4. Roast 25–30 minutes, flipping once at the 15-minute mark. {{< timer "25m" "roast" >}}
 5. Vegetables are done when browned on edges and tender when pierced with a knife.
 
 ## Notes

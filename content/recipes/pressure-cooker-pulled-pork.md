@@ -80,8 +80,8 @@ tags: ["pork", "pressure cooker", "meal prep", "pulled pork"]
 2. Place pork chunks on top (or on trivet)
 3. Add braising liquid if you didn't deglaze
 4. Lock lid, set valve to sealing
-5. **High pressure, 60–75 minutes** (60 for 3–4 lb, 75 for 5+ lb)
-6. **Natural release 15–20 min**, then vent remaining pressure
+5. **High pressure, 60–75 minutes** (60 for 3–4 lb, 75 for 5+ lb) {{< timer "60m" "pressure" >}}
+6. **Natural release 15–20 min**, then vent remaining pressure {{< timer "15m" "natural release" >}}
 
 ### 4. Shred
 

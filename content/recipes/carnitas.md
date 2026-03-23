@@ -34,7 +34,7 @@ tags: ["pork", "tacos", "braise", "meal prep", "weekend"]
 1. Season pork with salt, pepper, cumin, and oregano.
 2. Place in dutch oven with onion, garlic, orange juice, lime juice, bay leaves, and water.
 3. Bring to a simmer, cover, transfer to **300°F** oven.
-4. Cook 3–3.5 hours until pork shreds easily.
+4. Cook 3–3.5 hours until pork shreds easily. {{< timer "3h" "braise" >}}
 5. Remove pork, shred with forks. Discard bay leaves and onion.
 6. Strain braising liquid, skim fat.
 7. To crisp: spread shredded pork on a sheet pan, spoon some braising liquid over it. Broil 4–5 minutes until edges are charred and crispy. Toss, broil again.

@@ -30,8 +30,8 @@ tags: ["chicken", "rice", "one-pan", "weeknight"]
 6. Add rice, stir to coat in the fat. Cook 1 minute.
 7. Pour in broth, scrape up any browned bits. Bring to a simmer.
 8. Nestle chicken thighs on top, skin-side up. The skin should be above the liquid.
-9. Cover and cook on medium-low for 20 minutes. Do not open the lid.
-10. Remove from heat, let rest covered 5 minutes.
+9. Cover and cook on medium-low for 20 minutes. Do not open the lid. {{< timer "20m" "cook" >}}
+10. Remove from heat, let rest covered 5 minutes. {{< timer "5m" "rest" >}}
 11. Squeeze lemon over the top. Serve from the pan.
 
 ## Notes

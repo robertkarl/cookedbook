@@ -22,7 +22,7 @@ tags: ["vegetables", "side dish", "quick", "vegetarian", "vegan"]
 1. Preheat oven to 450°F.
 2. Toss florets with olive oil, garlic, salt, and red pepper flakes on a sheet pan.
 3. Spread in a single layer, flat side down.
-4. Roast 18–22 minutes until tips are charred and stems are tender.
+4. Roast 18–22 minutes until tips are charred and stems are tender. {{< timer "18m" "roast" >}}
 5. Squeeze lemon over immediately. Shave parmesan on top if using.
 
 ## Notes

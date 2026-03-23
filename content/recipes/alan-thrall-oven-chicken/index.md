@@ -1,5 +1,5 @@
 ---
-title: "Alan Thrall Oven Roasted Chicken"
+title: "Alan Thrall's Oven Roasted Chicken"
 summary: "Broken-down parts roasted on a rack over aromatics with herb butter."
 source: "[Alan Thrall (YouTube)](https://www.youtube.com/watch?v=TLGA36TDWIo)"
 prep_time: "20 min"

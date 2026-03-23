@@ -38,7 +38,7 @@ tags: ["beef", "soup", "meal prep", "weeknight", "one-pot"]
 3. Add garlic, cook 30 seconds.
 4. Add all spices (chili powder, cumin, paprika, cayenne, oregano). Stir 1 minute to bloom.
 5. Add crushed tomatoes, diced tomatoes, and beans. Stir to combine.
-6. Bring to a boil, then reduce to a low simmer. Cook 30 minutes, stirring occasionally.
+6. Bring to a boil, then reduce to a low simmer. Cook 30 minutes, stirring occasionally. {{< timer "30m" "simmer" >}}
 7. Season with salt and pepper. It'll need more salt than you think.
 8. Serve with toppings.
 

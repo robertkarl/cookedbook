@@ -38,8 +38,8 @@ tags: ["pork", "tacos", "pressure cooker", "chipotle", "citrus"]
 ## Method
 
 1. **Combine** pork, orange zest and juice, halved onion, chipotle, oregano, sugar, cumin, salt, pepper, and bay leaf in electric pressure cooker.
-2. **Pressure cook:** Lock lid in place and close pressure release valve. Select high pressure cook function and cook for **25 minutes**. Turn off pressure cooker and let pressure release naturally for **15 minutes**. Quick-release any remaining pressure, then carefully remove lid, allowing steam to escape away from you.
-3. **Crisp:** Discard orange zest, onion halves, and bay leaf. Let braising liquid settle, then skim excess fat from surface using large spoon. Cook pork, uncovered, using highest sauté or browning function until liquid is mostly reduced, **20 to 30 minutes**. Continue to cook, stirring occasionally to break up pork, until liquid has completely evaporated and pork begins to crisp around edges, about **10 minutes**. Stir lime juice into pork and season with salt and pepper to taste.
+2. **Pressure cook:** Lock lid in place and close pressure release valve. Select high pressure cook function and cook for **25 minutes**. {{< timer "25m" "pressure" >}} Turn off pressure cooker and let pressure release naturally for **15 minutes**. {{< timer "15m" "natural release" >}} Quick-release any remaining pressure, then carefully remove lid, allowing steam to escape away from you.
+3. **Crisp:** Discard orange zest, onion halves, and bay leaf. Let braising liquid settle, then skim excess fat from surface using large spoon. Cook pork, uncovered, using highest sauté or browning function until liquid is mostly reduced, **20 to 30 minutes**. {{< timer "20m" "reduce" >}} Continue to cook, stirring occasionally to break up pork, until liquid has completely evaporated and pork begins to crisp around edges, about **10 minutes**. {{< timer "10m" "crisp" >}} Stir lime juice into pork and season with salt and pepper to taste.
 4. **Serve** pork with warm tortillas, cilantro, radishes, chopped onion, and lime wedges.
 
 ## Notes

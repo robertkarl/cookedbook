@@ -14,16 +14,24 @@
   </div>
   {{ end }}
 
+  {{ if eq .Section "recipes" }}
+  <a href="recipe.pdf" class="btn btn-secondary btn-pdf" download>Download PDF</a>
+  {{ end }}
+
   <div class="recipe-content">
     {{ .Content }}
   </div>
 
+  {{ if eq .Section "recipes" }}
   <button class="clear-btn" onclick="clearChecks('{{ .File.UniqueID }}')">Clear All Checkboxes</button>
+  {{ end }}
 </article>
 {{ end }}
 
 {{ define "scripts" }}
+{{ if eq .Section "recipes" }}
 <script src="{{ "js/checkboxes.js" | relURL }}"></script>
 <script src="{{ "js/timer.js" | relURL }}"></script>
 <script>initCheckboxes('{{ .File.UniqueID }}');</script>
+{{ end }}
 {{ end }}

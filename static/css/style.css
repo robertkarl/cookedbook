@@ -419,3 +419,18 @@ footer {
 @media (min-width: 1024px) {
   html { font-size: 22px; }
 }
+
+/* === Print === */
+@media print {
+  .site-nav, footer, .clear-btn, .timer-widget, .timer-add, .timer-running,
+  .recipe-content input[type="checkbox"], .btn-pdf, .search-input,
+  .search-suggestions, .hero-actions, .nav-links {
+    display: none !important;
+  }
+
+  html { font-size: 14px; }
+  body { background: #fff; }
+  main { max-width: 100%; padding: 0; }
+  .recipe h1 { font-size: 1.6rem; }
+  .recipe-content h2 { border-bottom: 1px solid #ccc; }
+}

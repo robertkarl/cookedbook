@@ -24,8 +24,8 @@ tags: ["beef", "steak", "cast iron"]
 1. Season steaks generously with salt and pepper.
 2. Place on a wire rack set over a sheet pan.
 3. Put in a **250°F** oven.
-4. Cook until internal temp hits **120°F** for medium-rare — about 30–40 minutes depending on thickness. Use a probe thermometer.
-5. Remove and rest 5 minutes.
+4. Cook until internal temp hits **120°F** for medium-rare — about 30–40 minutes depending on thickness. Use a probe thermometer. {{< timer "30m" "oven" >}}
+5. Remove and rest 5 minutes. {{< timer "5m" "rest" >}}
 
 ### 2. Sear
 

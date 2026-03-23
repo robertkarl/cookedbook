@@ -24,10 +24,10 @@ tags: ["pizza", "dough", "bread"]
 3. Mix on low for 1 minute.
 4. Knead with the dough hook until smooth and elastic, about 5–7 minutes.
 5. Transfer to a bowl coated in olive oil, turn dough to coat.
-6. Cover and let rise somewhere warm for about an hour, until doubled.
+6. Cover and let rise somewhere warm for about an hour, until doubled. {{< timer "1h" "rise" >}}
 7. Preheat oven to 475°F.
 8. Punch down the dough and split in two.
-9. Let rise 15 more minutes, covered in plastic. Make sure the plastic isn't touching the dough.
+9. Let rise 15 more minutes, covered in plastic. Make sure the plastic isn't touching the dough. {{< timer "15m" "rise" >}}
 10. Prepare your toppings while it rests.
 11. Roll the rounds out on a floured work surface.
 12. Make a lip on the edge, coat with olive oil, and top as desired.

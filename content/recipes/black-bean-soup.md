@@ -35,7 +35,7 @@ tags: ["soup", "vegetarian", "pantry", "meal prep", "weeknight"]
 2. Add garlic and jalapeño, cook 1 minute.
 3. Add cumin, paprika, oregano. Stir 30 seconds until fragrant.
 4. Add beans, tomatoes, and broth. Bring to a boil, then reduce to a simmer.
-5. Cook 20 minutes.
+5. Cook 20 minutes. {{< timer "20m" "simmer" >}}
 6. Take out about 2 cups of soup and blend it (immersion blender in the pot works too). Stir back in. This gives you a thick base with whole beans throughout.
 7. Add lime juice, salt, and pepper to taste.
 8. Serve with toppings.

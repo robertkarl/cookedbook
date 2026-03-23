@@ -18,7 +18,7 @@ tags: ["side dish", "potatoes", "comfort food"]
 ## Instructions
 
 1. Place potatoes in a large pot, cover with cold water by 1 inch. Add a generous amount of salt.
-2. Bring to a boil, reduce to a simmer. Cook 15–18 minutes until a knife slides through easily.
+2. Bring to a boil, reduce to a simmer. Cook 15–18 minutes until a knife slides through easily. {{< timer "15m" "simmer" >}}
 3. Drain well. Return to the hot pot on the turned-off burner for 1 minute to dry out excess moisture.
 4. Add butter. Mash (potato masher or ricer — not a food processor, not a blender, not a stand mixer).
 5. Add warm milk gradually, stirring, until you hit the consistency you want.

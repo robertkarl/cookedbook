@@ -27,7 +27,7 @@ tags: ["baking", "banana", "breakfast"]
 4. Add baking soda and salt, stir.
 5. Fold in flour until just combined. Do not overmix.
 6. Fold in walnuts or chocolate chips if using.
-7. Pour into pan. Bake 55–60 minutes until a toothpick comes out clean.
+7. Pour into pan. Bake 55–60 minutes until a toothpick comes out clean. {{< timer "55m" "bake" >}}
 8. Cool in pan 10 minutes, then turn out onto a rack.
 
 ## Notes

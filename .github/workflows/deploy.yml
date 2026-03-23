@@ -33,6 +33,15 @@ jobs:
       - name: Build
         run: hugo --minify
 
+      - name: Install WeasyPrint
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev libcairo2
+          pip install weasyprint
+
+      - name: Generate PDFs
+        run: python3 scripts/generate-pdfs.py
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

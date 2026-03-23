@@ -39,7 +39,7 @@ tags: ["chicken", "soup", "one-pot", "weeknight"]
 2. Add garlic and jalapeño, cook 1 minute.
 3. Add cumin, chili powder, paprika. Stir 30 seconds.
 4. Add tomatoes, broth, beans, and corn. Bring to a boil.
-5. Add chicken thighs whole. Reduce to a simmer, cover, cook 20 minutes.
+5. Add chicken thighs whole. Reduce to a simmer, cover, cook 20 minutes. {{< timer "20m" "simmer" >}}
 6. Remove chicken, shred with two forks, return to pot.
 7. Add lime juice, salt, pepper to taste.
 8. Serve with toppings piled on.

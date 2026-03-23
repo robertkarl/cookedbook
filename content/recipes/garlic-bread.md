@@ -22,7 +22,7 @@ tags: ["bread", "side dish", "quick", "garlic"]
 2. Mix butter, garlic, parsley, Parmesan, and salt.
 3. Split bread lengthwise. Spread butter mixture generously on both halves.
 4. Place on a sheet pan, cut-side up.
-5. Bake 10–12 minutes until edges are golden and butter is bubbling.
+5. Bake 10–12 minutes until edges are golden and butter is bubbling. {{< timer "10m" "bake" >}}
 6. Slice and serve immediately.
 
 ## Notes

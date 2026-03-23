@@ -32,7 +32,7 @@ tags: ["beef", "braise", "red wine", "weekend"]
 6. Pour in wine, scrape up all the browned bits. Simmer until reduced by half, about 3 minutes.
 7. Add broth, thyme, bay leaves. Return ribs to pot, bone-side up. Liquid should come about ⅔ up the sides.
 8. Bring to a simmer, cover with lid, transfer to **325°F** oven.
-9. Braise 2.5–3 hours until meat is fork-tender and pulling away from bone.
+9. Braise 2.5–3 hours until meat is fork-tender and pulling away from bone. {{< timer "2h30m" "braise" >}}
 10. Remove ribs. Skim fat from sauce (or chill overnight and lift off solidified fat). Discard bay leaves and thyme. Reduce sauce on stovetop if it's too thin.
 11. Serve ribs with sauce over mashed potatoes or polenta.
 
