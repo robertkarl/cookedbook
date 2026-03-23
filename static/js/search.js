@@ -5,6 +5,12 @@ fetch('/index.json')
   .then(function (data) {
     recipes = data;
     buildSuggestions();
+    var params = new URLSearchParams(window.location.search);
+    var q = params.get('q');
+    if (q) {
+      document.getElementById('search-input').value = q;
+      doSearch(q);
+    }
   });
 
 function buildSuggestions() {

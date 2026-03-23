@@ -10,7 +10,7 @@
   </div>
   {{ if .Params.tags }}
   <div class="recipe-tags">
-    {{ range .Params.tags }}<span class="tag">{{ . }}</span>{{ end }}
+    {{ range .Params.tags }}<a href="{{ "/search/" | relURL }}?q={{ . | urlquery }}" class="tag">{{ . }}</a>{{ end }}
   </div>
   {{ end }}
 
