@@ -67,7 +67,7 @@ Save carcass for stock if you're not a savage.
 4. Arrange chicken parts skin-side up: breasts, wings, thighs, drumsticks
 5. Season all pieces with salt and pepper
 6. Slather herb butter generously — on top of skin and under the skin (especially breasts and thighs)
-7. Roast **~1 hour** until dark meat registers **165°F** internal
+7. Roast **~1 hour** until dark meat registers **165°F** internal {{< timer "1h" "roast" >}}
 
 ## Notes
 

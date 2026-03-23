@@ -46,9 +46,6 @@ main {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.5rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
 .nav-brand {
@@ -330,6 +327,76 @@ main {
   color: var(--meta);
   font-style: italic;
   padding: 1rem 0;
+}
+
+/* === Timer Widget === */
+.timer-widget {
+  display: inline;
+}
+
+.timer-add {
+  display: inline-block;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 48px;
+  vertical-align: middle;
+  margin: 0.3rem 0;
+}
+
+.timer-add:hover {
+  background: #d4c0b8;
+}
+
+.timer-add:active {
+  transform: scale(0.95);
+}
+
+.timer-running {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+  margin: 0.3rem 0;
+}
+
+.timer-done {
+  background: #2a7d2a;
+  animation: timer-pulse 1s ease-in-out 3;
+}
+
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.timer-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.timer-time {
+  min-width: 3.5em;
+  text-align: right;
 }
 
 /* === Footer === */

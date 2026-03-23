@@ -13,14 +13,12 @@
     <div class="nav-links">
       <a href="{{ "/recipes/" | relURL }}">All Recipes</a>
       <a href="{{ "/search/" | relURL }}">Search</a>
+      <a href="{{ "/about/" | relURL }}">About</a>
     </div>
   </nav>
   <main>
     {{ block "main" . }}{{ end }}
   </main>
-  <footer>
-    <p>No ads. No life stories. Just recipes.</p>
-  </footer>
   {{ block "scripts" . }}{{ end }}
 </body>
 </html>
