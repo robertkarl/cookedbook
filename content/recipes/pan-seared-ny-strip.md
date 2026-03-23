@@ -20,12 +20,11 @@ tags: ["beef", "steak", "cast iron", "weeknight", "quick"]
 ## Instructions
 
 1. Pull steaks from the fridge 30-40 minutes before cooking. Pat completely dry with paper towels. Season generously with salt and pepper on all sides. {{< timer "30m" "temper" >}}
-2. Heat cast iron skillet over high heat until it's ripping hot. You'll see wisps of smoke.
+2. Heat cast iron skillet over high heat until it's ripping hot. You'll see wisps of smoke. Optionally preheat the skillet in a hot oven.
 3. Add oil. Lay steaks away from you. Do not touch them.
 4. Sear 3-4 minutes until a deep brown crust forms. Don't move them. {{< timer "4m" "sear side 1" >}}
 5. Flip once. Sear another 3-4 minutes for medium-rare (130-135°F internal). {{< timer "3m" "sear side 2" >}}
-6. In the last minute, add butter, garlic, and herbs. Tilt the pan and baste the tops with the foaming butter for 30-60 seconds.
-7. Rest 5 minutes on a cutting board. Don't skip this. {{< timer "5m" "rest" >}}
+6. In the last minute, add butter, garlic, and herbs. Tilt the pan and baste the tops with the foaming butter for 30-60 seconds. A big wooden spoon is helpful.
 
 ## Temps
 
@@ -33,6 +32,8 @@ tags: ["beef", "steak", "cast iron", "weeknight", "quick"]
 - **Medium-rare:** 130-135°F, pull at 3.5-4 min per side
 - **Medium:** 135-145°F, pull at 4-4.5 min per side
 - Beyond that you're on your own
+
+I cooked two steaks side by side in a big cast iron this way, and flipped around 3 minutes per side.
 
 ## Notes
 
