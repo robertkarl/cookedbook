@@ -13,6 +13,7 @@ title = 'CookedBook'
 
 [params]
   description = "Recipes for people who are cooking, not scrolling."
+  chef_ws_url = "wss://chef.robertkarl.net/ws/voice"
 
 [outputs]
   home = ["HTML", "JSON"]

@@ -466,11 +466,105 @@ footer {
   html { font-size: 22px; }
 }
 
+/* === Chef Voice Assistant === */
+#chef-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+}
+
+#chef-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+#chef-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  background: var(--card-bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  transition: transform 0.1s, background 0.2s, box-shadow 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+}
+
+#chef-btn:active {
+  transform: scale(0.92);
+}
+
+#chef-btn .chef-btn-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+#chef-btn.chef-btn-active {
+  background: var(--accent);
+  box-shadow: 0 4px 24px rgba(196, 75, 43, 0.4);
+}
+
+#chef-btn.chef-btn-processing {
+  background: var(--accent-light);
+  pointer-events: none;
+}
+
+.chef-btn-pulse {
+  animation: chef-pulse 1s ease-in-out infinite;
+}
+
+@keyframes chef-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+#chef-status {
+  font-size: 0.7rem;
+  color: var(--meta);
+  text-align: center;
+  max-width: 120px;
+}
+
+#chef-transcript {
+  display: none;
+  font-size: 0.65rem;
+  color: var(--meta);
+  font-style: italic;
+  text-align: center;
+  max-width: 200px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.3rem 0.5rem;
+}
+
+#chef-answer {
+  display: none;
+  font-size: 0.8rem;
+  color: var(--text);
+  font-weight: 600;
+  text-align: center;
+  max-width: 260px;
+  background: var(--card-bg);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.7rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
 /* === Print === */
 @media print {
   .site-nav, footer, .clear-btn, .timer-widget, .timer-add, .timer-running,
   .recipe-content input[type="checkbox"], .btn-pdf, .recipe-tags,
-  .search-input, .search-suggestions, .hero-actions, .nav-links, .fav-btn {
+  .search-input, .search-suggestions, .hero-actions, .nav-links, .fav-btn,
+  #chef-container {
     display: none !important;
   }
 
