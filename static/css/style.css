@@ -566,12 +566,141 @@ footer {
   box-shadow: 0 2px 12px rgba(0,0,0,0.1);
 }
 
+/* === Chat toggle button === */
+#chat-toggle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--card-bg);
+  cursor: pointer;
+  font-size: 1.3rem;
+  line-height: 1;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+#chat-toggle:active {
+  transform: scale(0.92);
+}
+
+/* === Chat panel === */
+#chat-panel {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 6.5rem;
+  width: 340px;
+  max-height: 70vh;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 9998;
+  overflow: hidden;
+}
+
+#chat-header {
+  padding: 0.6rem 0.8rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 150px;
+  max-height: 50vh;
+}
+
+.chat-msg {
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  max-width: 90%;
+  word-wrap: break-word;
+}
+
+.chat-msg code {
+  background: rgba(0,0,0,0.06);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+.chat-msg-user {
+  background: var(--accent);
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.chat-msg-assistant {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+.chat-typing {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+#chat-input-row {
+  display: flex;
+  border-top: 1px solid var(--border);
+}
+
+#chat-input {
+  flex: 1;
+  border: none;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  background: var(--card-bg);
+  color: var(--text);
+  outline: none;
+  min-height: 44px;
+}
+
+#chat-send {
+  padding: 0.6rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+#chat-send:active {
+  opacity: 0.8;
+}
+
+@media (max-width: 600px) {
+  #chat-panel {
+    right: 0.5rem;
+    left: 0.5rem;
+    width: auto;
+    bottom: 6rem;
+  }
+}
+
 /* === Print === */
 @media print {
   .site-nav, footer, .clear-btn, .timer-widget, .timer-add, .timer-running,
   .recipe-content input[type="checkbox"], .btn-pdf, .recipe-tags,
   .search-input, .search-suggestions, .hero-actions, .nav-links, .fav-btn,
-  #chef-container {
+  #chef-container, #chat-panel, #chat-toggle {
     display: none !important;
   }
 

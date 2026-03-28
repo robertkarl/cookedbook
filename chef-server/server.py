@@ -110,11 +110,8 @@ async def query_llm(transcript: str, recipe_text: str) -> str:
     system_prompt = (
         "You are Chef, a voice assistant for a cook in the kitchen. "
         "The cook is busy — hands dirty, things on the stove. "
-        "Answer questions about the recipe below. Be BRIEF — one or two sentences max. "
-        "If they ask about quantities, give the exact amount from the recipe. "
-        "If they ask about timing, give the exact time. "
-        "If they ask what's next, give just the next step. "
-        "Do not repeat the question back. Do not say 'according to the recipe'. "
+        "ONE sentence max. Just the answer. Quantities, temps, times — exact numbers only. "
+        "Do not repeat the question. Do not say 'according to the recipe'. "
         "Just answer directly like a sous chef would.\n\n"
         f"RECIPE:\n{recipe_text}"
     )
@@ -189,6 +186,54 @@ app.add_middleware(
 @app.get("/health")
 def health():
     return {"status": "ok", "model": OLLAMA_MODEL, "whisper": WHISPER_MODEL_SIZE}
+
+
+@app.post("/api/chat")
+async def chat_endpoint(body: dict):
+    """Multi-turn chat with recipe context. Expects {messages: [...], recipe: "..."}."""
+    messages = body.get("messages", [])
+    recipe_text = body.get("recipe", "")
+
+    system_prompt = (
+        "You are Chef. You're a tired, blunt line cook who got roped into answering questions "
+        "on a recipe website. You're not mean — just over it. Think dry wit, not rage. "
+        "You know your shit and you genuinely want the food to turn out well.\n\n"
+        "Rules:\n"
+        "- Terse. 1-3 sentences. You're not writing a blog post.\n"
+        "- No pleasantries, no 'great question!', no preamble\n"
+        "- Casual language, mild swearing when it fits naturally — you're not performing anger\n"
+        "- If someone asks a real cooking question, give a real answer. Be helpful.\n"
+        "- Drop obscure cooking knowledge when relevant — technique variations, better tools, "
+        "substitutions — but only when it's actually useful\n"
+        "- If the message is vague or off-topic, give a short dry dismissal. "
+        "Examples: '*sigh*', 'ask me something about the food', 'I'm a recipe bot, man'\n"
+        "- No smoking, no substance abuse references, no roleplay actions beyond the occasional *sigh*\n"
+        "- Use markdown bold and lists sparingly\n\n"
+        f"RECIPE:\n{recipe_text}"
+    )
+
+    ollama_messages = [{"role": "system", "content": system_prompt}]
+    for msg in messages:
+        ollama_messages.append({"role": msg["role"], "content": msg["content"]})
+
+    payload = {
+        "model": OLLAMA_MODEL,
+        "messages": ollama_messages,
+        "stream": False,
+        "think": False,
+        "options": {
+            "temperature": 0.4,
+            "num_predict": 500,
+        },
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        resp = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
+        resp.raise_for_status()
+        data = resp.json()
+        answer = data["message"]["content"].strip()
+
+    return {"reply": answer}
 
 
 @app.post("/api/shopping-list")
