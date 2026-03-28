@@ -277,24 +277,25 @@ async def voice_endpoint(ws: WebSocket):
             msg = json.loads(raw)
 
             audio_b64 = msg.get("audio", "")
+            text_query = msg.get("text", "")
             recipe_text = msg.get("recipe", "")
 
-            if not audio_b64:
-                await ws.send_json({"type": "error", "message": "No audio data"})
+            # Two modes: audio (PCM for STT) or text (pre-transcribed, e.g. from wake word)
+            if text_query:
+                transcript = text_query.strip()
+                await ws.send_json({"type": "transcript", "text": transcript})
+            elif audio_b64:
+                pcm_bytes = base64.b64decode(audio_b64)
+                await ws.send_json({"type": "status", "state": "transcribing"})
+                transcript = await asyncio.to_thread(transcribe_audio, pcm_bytes)
+                if not transcript:
+                    await ws.send_json({"type": "status", "state": "idle"})
+                    await ws.send_json({"type": "error", "message": "Could not understand audio"})
+                    continue
+                await ws.send_json({"type": "transcript", "text": transcript})
+            else:
+                await ws.send_json({"type": "error", "message": "No audio or text data"})
                 continue
-
-            pcm_bytes = base64.b64decode(audio_b64)
-
-            # Step 1: Transcribe
-            await ws.send_json({"type": "status", "state": "transcribing"})
-            transcript = await asyncio.to_thread(transcribe_audio, pcm_bytes)
-
-            if not transcript:
-                await ws.send_json({"type": "status", "state": "idle"})
-                await ws.send_json({"type": "error", "message": "Could not understand audio"})
-                continue
-
-            await ws.send_json({"type": "transcript", "text": transcript})
 
             # Step 2: Query LLM
             await ws.send_json({"type": "status", "state": "thinking"})
