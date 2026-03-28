@@ -16,7 +16,10 @@
 
   {{ if eq .Section "recipes" }}
   {{ $slug := path.Base (strings.TrimSuffix "/" .RelPermalink) }}
-  <a href="{{ $slug }}.pdf" class="btn btn-secondary btn-pdf" download>Download PDF</a>
+  <div class="recipe-actions">
+    <a href="{{ $slug }}.pdf" class="btn btn-secondary btn-pdf" download>Download PDF</a>
+    <button class="btn btn-secondary" onclick="generateShoppingList()">Shopping List</button>
+  </div>
   {{ end }}
 
   <div class="recipe-content">
@@ -24,10 +27,7 @@
   </div>
 
   {{ if eq .Section "recipes" }}
-  <div class="recipe-actions">
-    <button class="clear-btn" onclick="clearChecks('{{ .File.UniqueID }}')">Clear All Checkboxes</button>
-    <button class="clear-btn" onclick="generateShoppingList()">Shopping List</button>
-  </div>
+  <button class="clear-btn" onclick="clearChecks('{{ .File.UniqueID }}')">Clear All Checkboxes</button>
   {{ end }}
 </article>
 {{ end }}

@@ -12,7 +12,7 @@
   var wsProto = location.protocol === "https:" ? "wss:" : "ws:";
   var CHEF_WS_URL = window.CHEF_WS_URL || (wsProto + "//" + location.host + "/ws/voice");
   var SILENCE_THRESHOLD = 0.015;
-  var SILENCE_DURATION_MS = 1500;
+  var SILENCE_DURATION_MS = 800;
   var MAX_RECORD_MS = 15000;
   var TARGET_SAMPLE_RATE = 16000;
 
@@ -294,6 +294,15 @@
     answerEl = document.getElementById("chef-answer");
 
     btn.addEventListener("click", onButtonTap);
+
+    // Spacebar to toggle recording (won't scroll — we preventDefault)
+    document.addEventListener("keydown", function (e) {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        onButtonTap();
+      }
+    });
 
     requestWakeLock();
     document.addEventListener("visibilitychange", function () {
