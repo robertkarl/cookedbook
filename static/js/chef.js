@@ -244,10 +244,19 @@
     return false;
   }
 
+  function hasSpeechRecognition() {
+    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+
   function startWakeWord() {
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.warn("[chef] SpeechRecognition not available — wake word disabled");
+      if (wakeWordToggle) {
+        wakeWordToggle.textContent = "Wake word: not supported";
+        wakeWordToggle.disabled = true;
+        wakeWordToggle.style.opacity = "0.4";
+      }
       return;
     }
 
@@ -410,13 +419,13 @@
       wakeWordToggle.textContent = "Wake word: off";
       stopWakeWord();
     } else {
-      // Turn on — need user gesture to init audio + speech recognition
+      // Turn on — SpeechRecognition manages its own mic, don't call initAudio
+      // (sharing getUserMedia between ScriptProcessor and SpeechRecognition
+      // causes "audio-capture" errors on Safari)
       wakeWordToggle.classList.add("active");
       wakeWordToggle.textContent = 'Wake word: "Jason"';
-      initAudio(function () {
-        connectWS();
-        startWakeWord();
-      });
+      connectWS();
+      startWakeWord();
     }
   }
 
@@ -448,7 +457,15 @@
     wakeWordToggle = document.getElementById("chef-wakeword-toggle");
 
     btn.addEventListener("click", onButtonTap);
-    wakeWordToggle.addEventListener("click", onWakeWordToggle);
+
+    // Disable wake word toggle upfront if browser doesn't support it
+    if (!hasSpeechRecognition()) {
+      wakeWordToggle.textContent = "Wake word: use Chrome/Safari";
+      wakeWordToggle.disabled = true;
+      wakeWordToggle.style.opacity = "0.4";
+    } else {
+      wakeWordToggle.addEventListener("click", onWakeWordToggle);
+    }
 
     requestWakeLock();
     document.addEventListener("visibilitychange", function () {
