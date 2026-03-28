@@ -21,6 +21,7 @@ import numpy as np
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("chef")
@@ -145,11 +146,9 @@ def synthesize_speech(text: str) -> bytes:
     """Convert text to WAV using Piper TTS Python API."""
     voice = get_piper()
     buf = io.BytesIO()
-    with wave.open(buf, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(voice.config.sample_rate)
-        voice.synthesize(text, wf)
+    wf = wave.open(buf, "wb")
+    voice.synthesize_wav(text, wf)
+    wf.close()
     wav_bytes = buf.getvalue()
     log.info("Synthesized %d bytes of audio", len(wav_bytes))
     return wav_bytes
@@ -252,9 +251,20 @@ async def voice_endpoint(ws: WebSocket):
             pass
 
 
+STATIC_DIR = os.environ.get("STATIC_DIR", "/opt/chef/public")
+
 if __name__ == "__main__":
     log.info("Preloading models...")
     get_whisper()
     get_piper()
+
+    # Serve Hugo static site if the directory exists (same-origin = no CORS/XSS issues)
+    static_path = Path(STATIC_DIR)
+    if static_path.is_dir():
+        app.mount("/", StaticFiles(directory=str(static_path), html=True), name="static")
+        log.info("Serving static site from %s", static_path)
+    else:
+        log.warning("No static dir at %s — API-only mode", static_path)
+
     log.info("Server ready on :8099")
     uvicorn.run(app, host="0.0.0.0", port=8099, log_level="info")

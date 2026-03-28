@@ -1,60 +1,58 @@
 /**
  * CookedBook Chef — voice assistant for hands-free recipe queries.
  *
- * Architecture:
- *   1. User taps the big mic button (or it auto-arms after playback)
- *   2. AudioWorklet captures 16kHz 16-bit mono PCM
- *   3. Simple energy-based VAD detects silence → stops recording
- *   4. PCM sent as base64 over WebSocket to the Chef server
- *   5. Server: faster-whisper STT → Ollama LLM → Piper TTS → WAV back
- *   6. Browser plays the WAV response
+ * Two activation modes:
+ *   1. Tap the mic button (tap again to stop early)
+ *   2. Say "Jason" — wake word detection via Web Speech API continuous recognition
+ *
+ * Pipeline:
+ *   Wake word / tap → record PCM → silence detection → send to server
+ *   Server: faster-whisper STT → Ollama LLM → Piper TTS → WAV back
  */
 
 (function () {
   "use strict";
 
   // --- Config ---
-  var CHEF_WS_URL = window.CHEF_WS_URL || "wss://chef.robertkarl.net/ws/voice";
-  var SILENCE_THRESHOLD = 0.015;   // RMS below this = silence
-  var SILENCE_DURATION_MS = 1500;  // 1.5s of silence = done talking
-  var MAX_RECORD_MS = 15000;       // safety cap: 15s max recording
+  var wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+  var CHEF_WS_URL = window.CHEF_WS_URL || (wsProto + "//" + location.host + "/ws/voice");
+  var SILENCE_THRESHOLD = 0.015;
+  var SILENCE_DURATION_MS = 1500;
+  var MAX_RECORD_MS = 15000;
   var TARGET_SAMPLE_RATE = 16000;
+  var WAKE_WORDS = ["jason", "jayson", "jaysin", "j son"];
 
   // --- State ---
   var ws = null;
   var audioCtx = null;
   var micStream = null;
-  var workletNode = null;
   var recording = false;
   var pcmChunks = [];
   var silenceStart = 0;
   var recordStart = 0;
-  var state = "idle"; // idle, listening, transcribing, thinking, speaking
+  var state = "idle"; // idle, wakeword, listening, transcribing, thinking, speaking
+  var wakeWordRecognition = null;
+  var wakeWordActive = false;
+  var audioInitialized = false;
 
-  // --- DOM refs (set in init) ---
+  // --- DOM refs ---
   var btn = null;
   var statusEl = null;
   var transcriptEl = null;
   var answerEl = null;
+  var wakeWordToggle = null;
 
   // --- WebSocket ---
   function connectWS() {
     if (ws && ws.readyState <= 1) return;
     ws = new WebSocket(CHEF_WS_URL);
-    ws.onopen = function () {
-      console.log("[chef] WS connected");
-    };
-    ws.onmessage = function (evt) {
-      var msg = JSON.parse(evt.data);
-      handleServerMessage(msg);
-    };
+    ws.onopen = function () { console.log("[chef] WS connected"); };
+    ws.onmessage = function (evt) { handleServerMessage(JSON.parse(evt.data)); };
     ws.onclose = function () {
       console.log("[chef] WS closed, reconnecting in 2s...");
       setTimeout(connectWS, 2000);
     };
-    ws.onerror = function (err) {
-      console.error("[chef] WS error", err);
-    };
+    ws.onerror = function (err) { console.error("[chef] WS error", err); };
   }
 
   function handleServerMessage(msg) {
@@ -108,35 +106,36 @@
     });
   }
 
-  // --- Mic + AudioWorklet setup ---
+  // --- Mic setup ---
   function initAudio(callback) {
     if (audioCtx && micStream) {
-      callback();
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume().then(callback);
+      } else {
+        callback();
+      }
       return;
     }
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: TARGET_SAMPLE_RATE });
 
-    // Resume AudioContext (required by Safari on first user gesture)
     audioCtx.resume().then(function () {
-      return navigator.mediaDevices.getUserMedia({ audio: { sampleRate: TARGET_SAMPLE_RATE, channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+      return navigator.mediaDevices.getUserMedia({
+        audio: { sampleRate: TARGET_SAMPLE_RATE, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+      });
     }).then(function (stream) {
       micStream = stream;
 
-      // Use ScriptProcessorNode — simpler than AudioWorklet for prototype,
-      // and has wider Safari support including older iPadOS.
       var source = audioCtx.createMediaStreamSource(stream);
       var processor = audioCtx.createScriptProcessor(4096, 1, 1);
 
       processor.onaudioprocess = function (e) {
         if (!recording) return;
         var input = e.inputBuffer.getChannelData(0);
-        // Compute RMS for VAD
         var sum = 0;
         for (var i = 0; i < input.length; i++) sum += input[i] * input[i];
         var rms = Math.sqrt(sum / input.length);
 
-        // Convert float32 to int16 PCM
         var pcm = new Int16Array(input.length);
         for (var j = 0; j < input.length; j++) {
           var s = Math.max(-1, Math.min(1, input[j]));
@@ -144,7 +143,6 @@
         }
         pcmChunks.push(pcm);
 
-        // Silence detection
         var now = Date.now();
         if (rms < SILENCE_THRESHOLD) {
           if (silenceStart === 0) silenceStart = now;
@@ -155,14 +153,14 @@
           silenceStart = 0;
         }
 
-        // Safety timeout
         if (now - recordStart > MAX_RECORD_MS) {
           stopRecording();
         }
       };
 
       source.connect(processor);
-      processor.connect(audioCtx.destination); // required for onaudioprocess to fire
+      processor.connect(audioCtx.destination);
+      audioInitialized = true;
 
       callback();
     }).catch(function (err) {
@@ -174,6 +172,8 @@
   // --- Recording control ---
   function startRecording() {
     if (recording) return;
+    // Pause wake word while recording so it doesn't pick up the query
+    pauseWakeWord();
     recording = true;
     pcmChunks = [];
     silenceStart = 0;
@@ -188,7 +188,6 @@
     recording = false;
     setState("transcribing");
 
-    // Merge chunks
     var totalLen = 0;
     for (var i = 0; i < pcmChunks.length; i++) totalLen += pcmChunks[i].length;
     var merged = new Int16Array(totalLen);
@@ -199,14 +198,10 @@
     }
     pcmChunks = [];
 
-    // Base64 encode
     var bytes = new Uint8Array(merged.buffer);
     var b64 = arrayBufferToBase64(bytes);
-
-    // Get recipe text from the page
     var recipeText = getRecipeText();
 
-    // Send to server
     if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify({ audio: b64, recipe: recipeText }));
     } else {
@@ -218,7 +213,6 @@
   function arrayBufferToBase64(bytes) {
     var binary = "";
     var len = bytes.byteLength;
-    // Process in chunks to avoid call stack overflow
     var chunkSize = 8192;
     for (var i = 0; i < len; i += chunkSize) {
       var chunk = bytes.subarray(i, Math.min(i + chunkSize, len));
@@ -229,7 +223,6 @@
     return btoa(binary);
   }
 
-  // --- Extract recipe text from the DOM ---
   function getRecipeText() {
     var content = document.querySelector(".recipe-content");
     if (!content) return "";
@@ -240,6 +233,114 @@
     return text;
   }
 
+  // ==================================================
+  // Wake word detection via Web Speech API
+  // ==================================================
+  function hasWakeWord(text) {
+    var lower = text.toLowerCase();
+    for (var i = 0; i < WAKE_WORDS.length; i++) {
+      if (lower.indexOf(WAKE_WORDS[i]) !== -1) return true;
+    }
+    return false;
+  }
+
+  function startWakeWord() {
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn("[chef] SpeechRecognition not available — wake word disabled");
+      return;
+    }
+
+    if (wakeWordRecognition) {
+      // Already exists, just restart
+      resumeWakeWord();
+      return;
+    }
+
+    wakeWordRecognition = new SpeechRecognition();
+    wakeWordRecognition.continuous = true;
+    wakeWordRecognition.interimResults = true;
+    wakeWordRecognition.lang = "en-US";
+    wakeWordRecognition.maxAlternatives = 3;
+
+    wakeWordRecognition.onresult = function (event) {
+      // Check all results (including interim) for the wake word
+      for (var i = event.resultIndex; i < event.results.length; i++) {
+        for (var a = 0; a < event.results[i].length; a++) {
+          var transcript = event.results[i][a].transcript;
+          if (hasWakeWord(transcript)) {
+            console.log("[chef] Wake word detected in: \"" + transcript + "\"");
+            onWakeWordDetected();
+            return;
+          }
+        }
+      }
+    };
+
+    wakeWordRecognition.onend = function () {
+      // Auto-restart if wake word should be active
+      // Safari likes to stop recognition randomly
+      if (wakeWordActive && state === "wakeword") {
+        console.log("[chef] Wake word recognition ended, restarting...");
+        setTimeout(function () {
+          if (wakeWordActive && state === "wakeword") {
+            try { wakeWordRecognition.start(); } catch (e) {}
+          }
+        }, 200);
+      }
+    };
+
+    wakeWordRecognition.onerror = function (event) {
+      // "no-speech" and "aborted" are normal on Safari, just restart
+      if (event.error === "no-speech" || event.error === "aborted") {
+        return; // onend will restart it
+      }
+      console.error("[chef] Wake word error:", event.error);
+    };
+
+    wakeWordActive = true;
+    try {
+      wakeWordRecognition.start();
+    } catch (e) {
+      console.error("[chef] Could not start wake word:", e);
+    }
+    setState("wakeword");
+    console.log("[chef] Wake word listening for: " + WAKE_WORDS.join(", "));
+  }
+
+  function pauseWakeWord() {
+    if (wakeWordRecognition && wakeWordActive) {
+      wakeWordActive = false;
+      try { wakeWordRecognition.stop(); } catch (e) {}
+    }
+  }
+
+  function resumeWakeWord() {
+    if (wakeWordRecognition && !wakeWordActive) {
+      wakeWordActive = true;
+      setState("wakeword");
+      try { wakeWordRecognition.start(); } catch (e) {}
+    }
+  }
+
+  function stopWakeWord() {
+    wakeWordActive = false;
+    if (wakeWordRecognition) {
+      try { wakeWordRecognition.stop(); } catch (e) {}
+    }
+    if (state === "wakeword") setState("idle");
+  }
+
+  function onWakeWordDetected() {
+    // Stop wake word recognition, start recording the actual query
+    pauseWakeWord();
+
+    initAudio(function () {
+      connectWS();
+      startRecording();
+    });
+  }
+
   // --- UI state machine ---
   function setState(newState) {
     state = newState;
@@ -247,18 +348,28 @@
 
     switch (state) {
       case "idle":
-        btn.classList.remove("chef-btn-active", "chef-btn-processing");
+        btn.classList.remove("chef-btn-active", "chef-btn-processing", "chef-btn-wakeword");
         btn.innerHTML = '<span class="chef-btn-icon">&#x1F3A4;</span>';
         statusEl.textContent = "Tap to ask Chef";
+        // Resume wake word if it was on
+        if (wakeWordToggle && wakeWordToggle.classList.contains("active")) {
+          resumeWakeWord();
+        }
+        break;
+      case "wakeword":
+        btn.classList.remove("chef-btn-active", "chef-btn-processing");
+        btn.classList.add("chef-btn-wakeword");
+        btn.innerHTML = '<span class="chef-btn-icon">&#x1F442;</span>';
+        statusEl.textContent = 'Say "Jason" or tap';
         break;
       case "listening":
+        btn.classList.remove("chef-btn-wakeword", "chef-btn-processing");
         btn.classList.add("chef-btn-active");
-        btn.classList.remove("chef-btn-processing");
         btn.innerHTML = '<span class="chef-btn-icon chef-btn-pulse">&#x1F3A4;</span>';
         statusEl.textContent = "Listening...";
         break;
       case "transcribing":
-        btn.classList.remove("chef-btn-active");
+        btn.classList.remove("chef-btn-active", "chef-btn-wakeword");
         btn.classList.add("chef-btn-processing");
         btn.innerHTML = '<span class="chef-btn-icon">&#x23F3;</span>';
         statusEl.textContent = "Hearing you...";
@@ -277,11 +388,13 @@
   // --- Button handler ---
   function onButtonTap() {
     if (state === "listening") {
-      // Manual stop
       stopRecording();
       return;
     }
-    if (state !== "idle") return;
+    if (state !== "idle" && state !== "wakeword") return;
+
+    // If wake word is active, pause it for the tap-to-talk flow
+    pauseWakeWord();
 
     initAudio(function () {
       connectWS();
@@ -289,7 +402,25 @@
     });
   }
 
-  // --- Wake Lock (keep screen on while cooking) ---
+  // --- Wake word toggle handler ---
+  function onWakeWordToggle() {
+    if (wakeWordToggle.classList.contains("active")) {
+      // Turn off
+      wakeWordToggle.classList.remove("active");
+      wakeWordToggle.textContent = "Wake word: off";
+      stopWakeWord();
+    } else {
+      // Turn on — need user gesture to init audio + speech recognition
+      wakeWordToggle.classList.add("active");
+      wakeWordToggle.textContent = 'Wake word: "Jason"';
+      initAudio(function () {
+        connectWS();
+        startWakeWord();
+      });
+    }
+  }
+
+  // --- Wake Lock ---
   function requestWakeLock() {
     if ("wakeLock" in navigator) {
       navigator.wakeLock.request("screen").catch(function () {});
@@ -298,13 +429,13 @@
 
   // --- Init ---
   function initChef() {
-    // Create the floating UI
     var container = document.createElement("div");
     container.id = "chef-container";
     container.innerHTML =
       '<div id="chef-panel">' +
         '<button id="chef-btn" type="button"><span class="chef-btn-icon">&#x1F3A4;</span></button>' +
         '<div id="chef-status">Tap to ask Chef</div>' +
+        '<button id="chef-wakeword-toggle" type="button">Wake word: off</button>' +
         '<div id="chef-transcript"></div>' +
         '<div id="chef-answer"></div>' +
       "</div>";
@@ -314,17 +445,29 @@
     statusEl = document.getElementById("chef-status");
     transcriptEl = document.getElementById("chef-transcript");
     answerEl = document.getElementById("chef-answer");
+    wakeWordToggle = document.getElementById("chef-wakeword-toggle");
 
     btn.addEventListener("click", onButtonTap);
+    wakeWordToggle.addEventListener("click", onWakeWordToggle);
 
-    // Keep screen alive
     requestWakeLock();
     document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") requestWakeLock();
+      if (document.visibilityState === "visible") {
+        requestWakeLock();
+        // Resume wake word if it was on
+        if (wakeWordToggle.classList.contains("active") && state === "idle") {
+          resumeWakeWord();
+        }
+      } else {
+        // Pause wake word when backgrounded
+        if (wakeWordActive) pauseWakeWord();
+      }
     });
   }
 
-  // Only init on recipe pages
+  // Only init if "AI bullshit" is enabled in localStorage
+  if (localStorage.getItem("chef-enabled") !== "1") return;
+
   if (document.querySelector(".recipe-content")) {
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", initChef);
