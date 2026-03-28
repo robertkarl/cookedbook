@@ -24,7 +24,10 @@
   </div>
 
   {{ if eq .Section "recipes" }}
-  <button class="clear-btn" onclick="clearChecks('{{ .File.UniqueID }}')">Clear All Checkboxes</button>
+  <div class="recipe-actions">
+    <button class="clear-btn" onclick="clearChecks('{{ .File.UniqueID }}')">Clear All Checkboxes</button>
+    <button class="clear-btn" onclick="generateShoppingList()">Shopping List</button>
+  </div>
   {{ end }}
 </article>
 {{ end }}
@@ -32,6 +35,7 @@
 {{ define "scripts" }}
 {{ if eq .Section "recipes" }}
 <script src="{{ "js/checkboxes.js" | relURL }}"></script>
+<script src="{{ "js/shopping.js" | relURL }}"></script>
 <script src="{{ "js/timer.js" | relURL }}"></script>
 <script src="{{ "js/favorites.js" | relURL }}"></script>
 <script>initCheckboxes('{{ .File.UniqueID }}'); initDetailFavorite();</script>

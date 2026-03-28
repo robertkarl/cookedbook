@@ -263,8 +263,14 @@ main {
   opacity: 0.6;
 }
 
-.clear-btn {
+.recipe-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
   margin-top: 2rem;
+}
+
+.clear-btn {
   padding: 0.7rem 1.5rem;
   font-size: 1rem;
   background: var(--card-bg);

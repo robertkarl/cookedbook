@@ -28,7 +28,7 @@ log = logging.getLogger("chef")
 
 # --- Config (env vars with sane defaults) ---
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.50.115:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3.5:4b")
 WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "base.en")
 PIPER_MODEL_DIR = os.environ.get("PIPER_MODEL_DIR", "/opt/chef/models")
 PIPER_VOICE = os.environ.get("PIPER_VOICE", "en_US-lessac-medium")
@@ -126,6 +126,7 @@ async def query_llm(transcript: str, recipe_text: str) -> str:
             {"role": "user", "content": transcript},
         ],
         "stream": False,
+        "think": False,
         "options": {
             "temperature": 0.3,
             "num_predict": 150,
@@ -188,6 +189,81 @@ app.add_middleware(
 @app.get("/health")
 def health():
     return {"status": "ok", "model": OLLAMA_MODEL, "whisper": WHISPER_MODEL_SIZE}
+
+
+@app.post("/api/shopping-list")
+async def shopping_list(body: dict):
+    """Take a list of ingredients to buy and group them by store aisle via LLM."""
+    need = body.get("need", [])
+    have = body.get("have", [])
+    recipe_name = body.get("recipe", "Recipe")
+
+    if not need:
+        return {"grouped": [], "raw": []}
+
+    # Number the items so the LLM returns index→aisle mappings
+    # instead of rewriting the ingredient text (which it mangles).
+    numbered = "\n".join(f"{i}: {item}" for i, item in enumerate(need))
+
+    prompt = (
+        "Assign each numbered ingredient to a grocery store aisle. "
+        "Output ONLY a JSON object mapping each number to an aisle name. "
+        'Example: {"0": "Produce", "1": "Meat/Seafood", "2": "Dairy"}\n'
+        "Use these aisle names: Produce, Meat/Seafood, Dairy, Spices/Seasonings, "
+        "Canned Goods, Oils & Vinegars, Bakery, Dry Goods/Pasta, Condiments, Pantry Staples.\n"
+        "Output ONLY the JSON object. No explanation.\n\n"
+        f"Ingredients:\n{numbered}"
+    )
+
+    payload = {
+        "model": OLLAMA_MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        "think": False,
+        "options": {"temperature": 0.1, "num_predict": 500},
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
+            resp.raise_for_status()
+            data = resp.json()
+            answer = data["message"]["content"].strip()
+
+        log.info("Shopping list LLM response: %s", answer)
+
+        # Parse JSON — LLM might wrap in code fences
+        cleaned = answer
+        if "```" in cleaned:
+            start = cleaned.index("```") + 3
+            if cleaned[start:].startswith("json"):
+                start += 4
+            end = cleaned.index("```", start)
+            cleaned = cleaned[start:end].strip()
+
+        mapping = json.loads(cleaned)  # {"0": "Produce", "1": "Meat/Seafood", ...}
+
+        # Build grouped output from the mapping, using original item text
+        aisles = {}
+        assigned = set()
+        for idx_str, aisle in mapping.items():
+            idx = int(idx_str)
+            if 0 <= idx < len(need):
+                assigned.add(idx)
+                aisles.setdefault(aisle, []).append(need[idx])
+
+        # Catch any items the LLM didn't assign
+        for idx, item in enumerate(need):
+            if idx not in assigned:
+                aisles.setdefault("Other", []).append(item)
+
+        grouped = [{"aisle": a, "items": items} for a, items in aisles.items()]
+        return {"grouped": grouped, "raw": need, "recipe": recipe_name}
+
+    except Exception as e:
+        log.error("Shopping list LLM error: %s", e)
+        # Fallback: return ungrouped
+        return {"grouped": [{"aisle": "All Items", "items": need}], "raw": need, "recipe": recipe_name}
 
 
 @app.websocket("/ws/voice")
