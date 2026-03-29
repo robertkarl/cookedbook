@@ -31,11 +31,15 @@ def setup_env(tmp_path):
     os.environ["CHEF_SECRET_KEY"] = "test-secret-key-not-for-prod"
     os.environ["CHEF_USERS_FILE"] = str(users_toml)
 
-    # Import and configure
+    # Import and configure — reset lazy signer so it picks up test key
     import auth
+    auth._signer = None
     auth.load_users(users_toml)
 
     yield
+
+    # Reset signer for next test
+    auth._signer = None
 
 
 @pytest.fixture
@@ -183,6 +187,23 @@ class TestProtectedEndpoints:
         assert resp.status_code == 401
 
 
+class TestWebSocketAuth:
+    def test_voice_ws_requires_auth(self, client):
+        """WebSocket should reject unauthenticated connections."""
+        with pytest.raises(Exception):
+            with client.websocket_connect("/ws/voice"):
+                pass
+
+    def test_voice_ws_rejects_invalid_cookie(self, client):
+        """WebSocket should reject connections with bad session cookies."""
+        with pytest.raises(Exception):
+            with client.websocket_connect(
+                "/ws/voice",
+                cookies={"chef_session": "forged.garbage.value"},
+            ):
+                pass
+
+
 class TestAuthModule:
     def test_create_and_validate_session(self):
         from auth import create_session, validate_session
@@ -195,14 +216,14 @@ class TestAuthModule:
         assert username == "testuser"
 
     def test_validate_expired_session(self):
-        from auth import _signer, validate_session
+        from auth import _get_signer, validate_session
         import auth
 
         # Temporarily set max_age to 0
         original = auth.SESSION_MAX_AGE
         auth.SESSION_MAX_AGE = 0
 
-        token = _signer.sign("testuser").decode("utf-8")
+        token = _get_signer().sign("testuser").decode("utf-8")
 
         import time
         time.sleep(1)

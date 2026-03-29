@@ -23,8 +23,10 @@ CookedBook has an optional AI voice assistant and text chat for recipe help. The
     .then(function(r) { return r.ok ? r.json() : null; })
     .then(function(data) {
       if (data && data.authenticated) {
+        var safe = document.createElement("span");
+        safe.textContent = data.username;
         el.innerHTML = '<p style="color: #2a7d2e;">Signed in as <strong>' +
-          data.username + '</strong>. AI features are active on recipe pages.</p>' +
+          safe.innerHTML + '</strong>. AI features are active on recipe pages.</p>' +
           '<p><a href="/logout">Sign out</a></p>';
       } else {
         el.innerHTML = '<p><a href="/login">Sign in</a> to enable AI features (voice assistant, text chat, smart shopping lists).</p>';
