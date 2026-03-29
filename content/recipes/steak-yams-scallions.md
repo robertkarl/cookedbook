@@ -14,7 +14,7 @@ tags: ["beef", "weeknight"]
 - 2 tablespoons extra-virgin olive oil, divided
 - 1 tablespoon table salt, divided
 - 2 1/2 teaspoons pepper, divided
-- 6 scallions, trimmed
+- 12 scallions, trimmed
 - 1 tablespoon packed dark brown sugar
 - 1 tablespoon finely ground coffee
 - 1 tablespoon chili powder

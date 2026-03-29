@@ -40,8 +40,14 @@ done
    > 2. Rewrite instructions as SHORT, TERSE, IMPERATIVE steps. Strip ALL stories, anecdotes, "my grandmother" prose, brand plugs, history, and filler. Keep ONLY what a cook standing at the stove needs.
    > 3. Steps should be 1-2 sentences max.
    > 4. Use specific temps, times, and measurements.
-   > 5. Mark anything unclear or hard to read with [?].
-   > 6. Pick tags from: beef, pork, chicken, seafood, vegetarian, vegan, pasta, baking, grilling, cast iron, dutch oven, pressure cooker, slow cooker, weeknight, quick, soup, salad, side, dessert, breakfast, sauce, fermentation, smoking, sous vide.
+   > 5. Add inline timer shortcodes wherever a step has a specific wait/cook time. Format: `{{</* timer "Xm" "label" */>}}` where X is the duration and label describes what's timing. Examples:
+   >    - "Roast for 25 minutes" → `Roast for 25 minutes. {{</* timer "25m" "roast" */>}}`
+   >    - "Sear 4 minutes per side" → `Sear 4 minutes per side. {{</* timer "4m" "sear side 1" */>}}`
+   >    - "Braise 3 hours" → `Braise 3 hours. {{</* timer "3h" "braise" */>}}`
+   >    - "Rest 10 minutes" → `Rest 10 minutes. {{</* timer "10m" "rest" */>}}`
+   >    Only add timers for explicit durations, not vague times like "until golden" or "until tender".
+   > 6. Mark anything unclear or hard to read with [?].
+   > 7. Pick tags from: beef, pork, chicken, seafood, vegetarian, vegan, pasta, baking, grilling, cast iron, dutch oven, pressure cooker, slow cooker, weeknight, quick, soup, salad, side, dessert, breakfast, sauce, fermentation, smoking, sous vide.
    >
    > Write each recipe to /Users/robertkarl/Code/cookedbook/content/recipes/<slug>.md using this format:
    >

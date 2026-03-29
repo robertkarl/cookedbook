@@ -28,7 +28,7 @@ log = logging.getLogger("chef")
 
 # --- Config (env vars with sane defaults) ---
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.50.115:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3.5:4b")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3.5:9b-q4_K_M")
 WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "base.en")
 PIPER_MODEL_DIR = os.environ.get("PIPER_MODEL_DIR", "/opt/chef/models")
 PIPER_VOICE = os.environ.get("PIPER_VOICE", "en_US-lessac-medium")
