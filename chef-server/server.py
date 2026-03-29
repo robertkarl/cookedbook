@@ -331,7 +331,7 @@ async def login_submit(request: Request):
 @app.get("/logout")
 def logout():
     response = RedirectResponse("/", status_code=302)
-    response.delete_cookie(SESSION_COOKIE)
+    response.delete_cookie(SESSION_COOKIE, secure=True, samesite="lax", httponly=True)
     return response
 
 
@@ -400,13 +400,19 @@ async def chat_endpoint(request: Request):
         },
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        resp = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-        answer = data["message"]["content"].strip()
-
-    return {"reply": answer}
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
+            resp.raise_for_status()
+            data = resp.json()
+            answer = data["message"]["content"].strip()
+        return {"reply": answer}
+    except Exception as e:
+        log.error("Chat LLM error: %s", e)
+        return JSONResponse(
+            {"reply": "Chef is having a moment. Try again.", "error": True},
+            status_code=502,
+        )
 
 
 @app.post("/api/shopping-list")

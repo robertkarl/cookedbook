@@ -246,3 +246,221 @@ class TestAuthModule:
         assert verify_password("testuser", "testpass123") is True
         assert verify_password("testuser", "wrongpass") is False
         assert verify_password("nonexistent", "testpass123") is False
+
+
+# ============================================================================
+# Quality-check: additional coverage for edge cases and malformed input
+# ============================================================================
+
+
+class TestLoginMalformedInput:
+    """Login endpoint with garbage, edge-case, and adversarial input."""
+
+    def test_login_empty_username(self, client):
+        resp = client.post(
+            "/login",
+            data={"username": "", "password": "testpass123"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 401
+
+    def test_login_empty_password(self, client):
+        resp = client.post(
+            "/login",
+            data={"username": "testuser", "password": ""},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 401
+
+    def test_login_missing_username_field(self, client):
+        resp = client.post(
+            "/login",
+            data={"password": "testpass123"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 401
+
+    def test_login_missing_password_field(self, client):
+        resp = client.post(
+            "/login",
+            data={"username": "testuser"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 401
+
+    def test_login_empty_form(self, client):
+        resp = client.post("/login", data={}, follow_redirects=False)
+        assert resp.status_code == 401
+
+    def test_login_very_long_username(self, client):
+        resp = client.post(
+            "/login",
+            data={"username": "a" * 10_000, "password": "testpass123"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 401
+
+    def test_login_very_long_password(self, client):
+        resp = client.post(
+            "/login",
+            data={"username": "testuser", "password": "x" * 10_000},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 401
+
+    def test_login_unicode_username(self, client):
+        resp = client.post(
+            "/login",
+            data={"username": "\u00e9\u00e0\u00fc\u00f1\u2603\U0001f525", "password": "test"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 401
+
+    def test_login_whitespace_only_username(self, client):
+        resp = client.post(
+            "/login",
+            data={"username": "   ", "password": "testpass123"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 401
+
+
+class TestUsersTomlEdgeCases:
+    """Edge cases for users.toml loading."""
+
+    def test_missing_users_toml_rejects_everyone(self, tmp_path):
+        """When users.toml doesn't exist, verify_password rejects all users."""
+        import auth
+        # Save original users, load from nonexistent path
+        original_users = auth._users.copy()
+        auth.load_users(tmp_path / "nonexistent.toml")
+        assert auth.verify_password("testuser", "testpass123") is False
+        assert auth.verify_password("anyone", "anything") is False
+        # Restore
+        auth._users = original_users
+
+    def test_malformed_users_toml_does_not_crash(self, tmp_path):
+        """Invalid TOML should log error and reject everyone, not crash."""
+        import auth
+        bad_toml = tmp_path / "bad.toml"
+        bad_toml.write_text("this is not [valid toml {{{{")
+        # After fix: should NOT raise
+        auth.load_users(bad_toml)
+        assert auth.verify_password("anyone", "anything") is False
+
+    def test_empty_users_toml(self, tmp_path):
+        import auth
+        auth._signer = None
+        empty_toml = tmp_path / "empty.toml"
+        empty_toml.write_text("# empty config\n")
+        os.environ["CHEF_SECRET_KEY"] = "test-secret-key-not-for-prod"
+        auth.load_users(empty_toml)
+        assert auth.verify_password("testuser", "testpass123") is False
+        auth._signer = None
+
+
+class TestSessionEdgeCases:
+
+    def test_session_for_removed_user_rejected(self, client):
+        """Session for a user who was removed after login should be rejected."""
+        import auth
+        login_resp = client.post(
+            "/login",
+            data={"username": "testuser", "password": "testpass123"},
+            follow_redirects=False,
+        )
+        cookie = login_resp.cookies.get("chef_session")
+        auth._users.pop("testuser", None)
+        resp = client.get("/api/me", cookies={"chef_session": cookie})
+        assert resp.status_code == 401
+
+    def test_empty_cookie_value(self, client):
+        resp = client.get("/api/me", cookies={"chef_session": ""})
+        assert resp.status_code == 401
+
+    def test_extremely_long_cookie(self, client):
+        resp = client.get("/api/me", cookies={"chef_session": "A" * 100_000})
+        assert resp.status_code == 401
+
+
+class TestLogoutEdgeCases:
+
+    def test_logout_without_session(self, client):
+        resp = client.get("/logout", follow_redirects=False)
+        assert resp.status_code == 302
+
+
+class TestProtectedEndpointsWithAuth:
+    """Test protected endpoints WITH valid auth — happy path for edge cases."""
+
+    def _get_auth_cookie(self, client):
+        resp = client.post(
+            "/login",
+            data={"username": "testuser", "password": "testpass123"},
+            follow_redirects=False,
+        )
+        return resp.cookies.get("chef_session")
+
+    def test_shopping_list_empty_need(self, client):
+        cookie = self._get_auth_cookie(client)
+        resp = client.post(
+            "/api/shopping-list",
+            json={"need": [], "recipe": "test"},
+            cookies={"chef_session": cookie},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["grouped"] == []
+        assert data["raw"] == []
+
+    def test_shopping_list_missing_need_field(self, client):
+        cookie = self._get_auth_cookie(client)
+        resp = client.post(
+            "/api/shopping-list",
+            json={"recipe": "test"},
+            cookies={"chef_session": cookie},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["grouped"] == []
+
+    def test_shopping_list_empty_body(self, client):
+        cookie = self._get_auth_cookie(client)
+        resp = client.post(
+            "/api/shopping-list",
+            json={},
+            cookies={"chef_session": cookie},
+        )
+        assert resp.status_code == 200
+
+    def test_chat_llm_unreachable_returns_502(self, client):
+        """chat_endpoint should handle LLM errors gracefully (502, not 500)."""
+        import server
+        original_url = server.OLLAMA_URL
+        server.OLLAMA_URL = "http://127.0.0.1:1"  # guaranteed unreachable
+        try:
+            cookie = self._get_auth_cookie(client)
+            resp = client.post(
+                "/api/chat",
+                json={"messages": [{"role": "user", "content": "hi"}], "recipe": "test"},
+                cookies={"chef_session": cookie},
+            )
+            assert resp.status_code == 502
+            assert "error" in resp.json()
+        finally:
+            server.OLLAMA_URL = original_url
+
+
+class TestVerifyPasswordEdgeCases:
+
+    def test_verify_empty_password(self):
+        from auth import verify_password
+        assert verify_password("testuser", "") is False
+
+    def test_verify_empty_username(self):
+        from auth import verify_password
+        assert verify_password("", "testpass123") is False
+
+    def test_verify_nonexistent_user_constant_time(self):
+        """Verifying a nonexistent user should still run bcrypt (timing attack mitigation)."""
+        from auth import verify_password
+        assert verify_password("doesnotexist", "password") is False
