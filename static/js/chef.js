@@ -75,11 +75,13 @@
   function playWavBase64(b64) {
     var binary = atob(b64);
     var len = binary.length;
-    var bytes = new Uint8Array(len);
-    for (var i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+    var buf = new ArrayBuffer(len);
+    var view = new Uint8Array(buf);
+    for (var i = 0; i < len; i++) view[i] = binary.charCodeAt(i);
 
+    console.log("[chef] Playing audio: " + len + " bytes");
     var ctx = new (window.AudioContext || window.webkitAudioContext)();
-    ctx.decodeAudioData(bytes.buffer, function (buffer) {
+    ctx.decodeAudioData(buf).then(function (buffer) {
       var source = ctx.createBufferSource();
       source.buffer = buffer;
       source.connect(ctx.destination);
@@ -88,7 +90,7 @@
         setState("idle");
       };
       source.start(0);
-    }, function (err) {
+    }).catch(function (err) {
       console.error("[chef] Audio decode error:", err);
       ctx.close();
       setState("idle");
