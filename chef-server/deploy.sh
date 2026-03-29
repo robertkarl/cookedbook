@@ -98,7 +98,9 @@ echo "[5/7] Deploying application..."
 # Push files to container via Proxmox host
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 scp -q "$SCRIPT_DIR/server.py" "$PROXMOX_HOST:/tmp/chef-server.py"
+scp -q "$SCRIPT_DIR/auth.py" "$PROXMOX_HOST:/tmp/chef-auth.py"
 scp -q "$SCRIPT_DIR/requirements.txt" "$PROXMOX_HOST:/tmp/chef-requirements.txt"
+scp -q "$SCRIPT_DIR/users.toml" "$PROXMOX_HOST:/tmp/chef-users.toml"
 
 ssh "$PROXMOX_HOST" bash <<DEPLOYEOF
 set -euo pipefail
@@ -107,7 +109,9 @@ CT_ID=$CT_ID
 sudo pct exec \$CT_ID -- mkdir -p /opt/chef/models
 
 sudo pct push \$CT_ID /tmp/chef-server.py /opt/chef/server.py
+sudo pct push \$CT_ID /tmp/chef-auth.py /opt/chef/auth.py
 sudo pct push \$CT_ID /tmp/chef-requirements.txt /opt/chef/requirements.txt
+sudo pct push \$CT_ID /tmp/chef-users.toml /opt/chef/users.toml
 sudo pct exec \$CT_ID -- chown -R rk:rk /opt/chef
 
 echo "  Files deployed"
@@ -142,10 +146,11 @@ Type=simple
 User=rk
 WorkingDirectory=/opt/chef
 Environment=OLLAMA_URL=http://192.168.50.115:11434
-Environment=OLLAMA_MODEL=qwen2.5:7b
+Environment=OLLAMA_MODEL=qwen3.5:9b-q4_K_M
 Environment=WHISPER_MODEL_SIZE=base.en
 Environment=PIPER_MODEL_DIR=/opt/chef/models
-Environment=PIPER_VOICE=en_US-lessac-medium
+Environment=PIPER_VOICE=en_US-ryan-low
+Environment=CHEF_SECRET_KEY=CHANGE_ME_GENERATE_WITH_python3_-c_import_secrets_print_secrets.token_hex_32
 ExecStart=/opt/chef/venv/bin/python /opt/chef/server.py
 Restart=always
 RestartSec=5

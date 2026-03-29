@@ -3,6 +3,8 @@ CookedBook Chef Voice Assistant — server component.
 
 Receives audio over WebSocket, transcribes with faster-whisper,
 queries Ollama with recipe context, responds with Piper TTS audio.
+
+Authentication via signed session cookies (see auth.py).
 """
 
 import asyncio
@@ -13,15 +15,25 @@ import logging
 import os
 import subprocess
 import tempfile
+import time
 import wave
+from http.cookies import SimpleCookie
 from pathlib import Path
 
 import httpx
 import numpy as np
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Cookie, FastAPI, Request, Response, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+
+from auth import (
+    SESSION_COOKIE,
+    create_session,
+    load_users,
+    validate_session,
+    verify_password,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("chef")
@@ -31,8 +43,10 @@ OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.50.115:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3.5:9b-q4_K_M")
 WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "base.en")
 PIPER_MODEL_DIR = os.environ.get("PIPER_MODEL_DIR", "/opt/chef/models")
-PIPER_VOICE = os.environ.get("PIPER_VOICE", "en_US-lessac-medium")
+PIPER_VOICE = os.environ.get("PIPER_VOICE", "en_US-ryan-low")
 INPUT_SAMPLE_RATE = 16000
+ALLOWED_ORIGIN = os.environ.get("CHEF_ALLOWED_ORIGIN", "")
+SERVER_START_TIME = time.time()
 
 # --- Lazy-loaded heavy deps ---
 _whisper_model = None
@@ -64,12 +78,11 @@ def get_piper():
 
         if not onnx_path.exists():
             log.info("Downloading Piper voice model: %s", PIPER_VOICE)
-            # Parse voice name: en_US-lessac-medium -> en/en_US/lessac/medium/
             parts = PIPER_VOICE.split("-")
-            lang = parts[0]                    # en_US
-            lang_short = lang.split("_")[0]    # en
-            name = parts[1]                    # lessac
-            quality = parts[2]                 # medium
+            lang = parts[0]
+            lang_short = lang.split("_")[0]
+            name = parts[1]
+            quality = parts[2]
             base = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0"
             url_prefix = f"{base}/{lang_short}/{lang}/{name}/{quality}/{PIPER_VOICE}"
 
@@ -91,7 +104,7 @@ def get_piper():
 def transcribe_audio(pcm_bytes: bytes) -> str:
     """Transcribe raw 16kHz 16-bit mono PCM to text."""
     samples = np.frombuffer(pcm_bytes, dtype=np.int16).astype(np.float32) / 32768.0
-    if len(samples) < INPUT_SAMPLE_RATE * 0.3:  # less than 0.3s, skip
+    if len(samples) < INPUT_SAMPLE_RATE * 0.3:
         return ""
     model = get_whisper()
     segments, _info = model.transcribe(
@@ -172,42 +185,202 @@ def synthesize_speech_cli(text: str) -> bytes:
         Path(tmp_path).unlink(missing_ok=True)
 
 
+# --- Auth helpers ---
+
+def get_current_user(request: Request) -> str | None:
+    """Extract and validate session cookie from request."""
+    cookie_value = request.cookies.get(SESSION_COOKIE)
+    if not cookie_value:
+        return None
+    return validate_session(cookie_value)
+
+
+def require_auth(request: Request) -> str:
+    """Return username or raise 401."""
+    user = get_current_user(request)
+    if user is None:
+        raise _unauthorized()
+    return user
+
+
+def _unauthorized():
+    from fastapi import HTTPException
+    return HTTPException(status_code=401, detail="Not authenticated")
+
+
+def get_ws_user(ws: WebSocket) -> str | None:
+    """Extract and validate session cookie from WebSocket headers."""
+    cookie_header = ""
+    for key, val in ws.headers.raw:
+        if key == b"cookie":
+            cookie_header = val.decode("utf-8")
+            break
+    if not cookie_header:
+        return None
+    c = SimpleCookie()
+    c.load(cookie_header)
+    morsel = c.get(SESSION_COOKIE)
+    if morsel is None:
+        return None
+    return validate_session(morsel.value)
+
+
 # --- FastAPI app ---
 app = FastAPI(title="CookedBook Chef")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS: only allow specific origin if set, otherwise same-origin only (no CORS middleware)
+if ALLOWED_ORIGIN:
+    from fastapi.middleware.cors import CORSMiddleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[ALLOWED_ORIGIN],
+        allow_credentials=True,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Content-Type"],
+    )
 
+
+# --- Login page ---
+
+LOGIN_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — CookedBook Chef</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #faf8f5; color: #2c2c2c;
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; padding: 1rem;
+    }
+    .login-box {
+      background: #fff; border-radius: 12px; padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08); max-width: 360px; width: 100%;
+    }
+    h1 { font-size: 1.3rem; margin-bottom: 1.5rem; text-align: center; }
+    label { display: block; font-size: 0.9rem; margin-bottom: 0.3rem; color: #555; }
+    input[type="text"], input[type="password"] {
+      width: 100%; padding: 0.7rem; font-size: 1rem;
+      border: 1px solid #ddd; border-radius: 6px; margin-bottom: 1rem;
+    }
+    input:focus { outline: none; border-color: #c44b2b; }
+    button {
+      width: 100%; padding: 0.75rem; font-size: 1rem; font-weight: 600;
+      background: #c44b2b; color: #fff; border: none; border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background: #a93d24; }
+    .error { color: #c44b2b; font-size: 0.85rem; margin-bottom: 1rem; text-align: center; }
+    .back { display: block; text-align: center; margin-top: 1rem; color: #888; font-size: 0.85rem; }
+    .back a { color: #c44b2b; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h1>CookedBook Chef</h1>
+    {error}
+    <form method="POST" action="/login">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+      <button type="submit">Sign In</button>
+    </form>
+    <div class="back"><a href="/">← Back to recipes</a></div>
+  </div>
+</body>
+</html>"""
+
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    user = get_current_user(request)
+    if user:
+        return RedirectResponse("/", status_code=302)
+    return HTMLResponse(LOGIN_HTML.replace("{error}", ""))
+
+
+@app.post("/login")
+async def login_submit(request: Request):
+    form = await request.form()
+    username = form.get("username", "").strip().lower()
+    password = form.get("password", "")
+
+    if not verify_password(username, password):
+        log.warning("Failed login attempt for user '%s'", username)
+        html = LOGIN_HTML.replace("{error}", '<div class="error">Bad username or password.</div>')
+        return HTMLResponse(html, status_code=401)
+
+    log.info("User '%s' logged in", username)
+    session_value = create_session(username)
+    response = RedirectResponse("/", status_code=302)
+    response.set_cookie(
+        SESSION_COOKIE,
+        session_value,
+        max_age=30 * 24 * 3600,
+        httponly=True,
+        samesite="lax",
+        secure=True,
+    )
+    return response
+
+
+@app.get("/logout")
+def logout():
+    response = RedirectResponse("/", status_code=302)
+    response.delete_cookie(SESSION_COOKIE, secure=True, samesite="lax", httponly=True)
+    return response
+
+
+@app.get("/api/me")
+def me_endpoint(request: Request):
+    user = get_current_user(request)
+    if user is None:
+        return JSONResponse({"authenticated": False}, status_code=401)
+    return {"authenticated": True, "username": user}
+
+
+# --- Health ---
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": OLLAMA_MODEL, "whisper": WHISPER_MODEL_SIZE}
+    uptime = int(time.time() - SERVER_START_TIME)
+    return {
+        "status": "ok",
+        "model": OLLAMA_MODEL,
+        "whisper": WHISPER_MODEL_SIZE,
+        "uptime_seconds": uptime,
+    }
 
+
+# --- Authenticated API endpoints ---
 
 @app.post("/api/chat")
-async def chat_endpoint(body: dict):
-    """Multi-turn chat with recipe context. Expects {messages: [...], recipe: "..."}."""
+async def chat_endpoint(request: Request):
+    """Multi-turn chat with recipe context. Requires auth."""
+    require_auth(request)
+
+    body = await request.json()
     messages = body.get("messages", [])
     recipe_text = body.get("recipe", "")
 
     system_prompt = (
-        "You are Chef. You're a tired, blunt line cook who got roped into answering questions "
-        "on a recipe website. You're not mean — just over it. Think dry wit, not rage. "
-        "You know your shit and you genuinely want the food to turn out well.\n\n"
+        "You are a recipe assistant. Your #1 job is to answer questions ACCURATELY "
+        "using the recipe below. When the recipe contains a specific time, temperature, "
+        "or quantity, QUOTE IT EXACTLY. Do not make up numbers or paraphrase — use the "
+        "actual values from the recipe.\n\n"
+        "Personality: you're a tired, blunt line cook. Dry wit, terse, casual. "
+        "Not mean, just over it. Mild swearing when natural.\n\n"
         "Rules:\n"
-        "- Terse. 1-3 sentences. You're not writing a blog post.\n"
-        "- No pleasantries, no 'great question!', no preamble\n"
-        "- Casual language, mild swearing when it fits naturally — you're not performing anger\n"
-        "- If someone asks a real cooking question, give a real answer. Be helpful.\n"
-        "- Drop obscure cooking knowledge when relevant — technique variations, better tools, "
-        "substitutions — but only when it's actually useful\n"
-        "- If the message is vague or off-topic, give a short dry dismissal. "
-        "Examples: '*sigh*', 'ask me something about the food', 'I'm a recipe bot, man'\n"
-        "- No smoking, no substance abuse references, no roleplay actions beyond the occasional *sigh*\n"
+        "- ACCURACY FIRST. If the recipe says 12-15 minutes, say 12-15 minutes.\n"
+        "- Terse. 1-3 sentences unless the question genuinely needs more.\n"
+        "- No pleasantries, no preamble\n"
+        "- If you don't know something and the recipe doesn't say, say you don't know\n"
+        "- Drop useful cooking knowledge when relevant, but don't hallucinate recipe details\n"
+        "- If the message is vague or off-topic: '*sigh*' or 'ask me about the food'\n"
         "- Use markdown bold and lists sparingly\n\n"
         f"RECIPE:\n{recipe_text}"
     )
@@ -227,18 +400,27 @@ async def chat_endpoint(body: dict):
         },
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        resp = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-        answer = data["message"]["content"].strip()
-
-    return {"reply": answer}
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
+            resp.raise_for_status()
+            data = resp.json()
+            answer = data["message"]["content"].strip()
+        return {"reply": answer}
+    except Exception as e:
+        log.error("Chat LLM error: %s", e)
+        return JSONResponse(
+            {"reply": "Chef is having a moment. Try again.", "error": True},
+            status_code=502,
+        )
 
 
 @app.post("/api/shopping-list")
-async def shopping_list(body: dict):
-    """Take a list of ingredients to buy and group them by store aisle via LLM."""
+async def shopping_list(request: Request):
+    """Take a list of ingredients to buy and group them by store aisle via LLM. Requires auth."""
+    require_auth(request)
+
+    body = await request.json()
     need = body.get("need", [])
     have = body.get("have", [])
     recipe_name = body.get("recipe", "Recipe")
@@ -246,8 +428,6 @@ async def shopping_list(body: dict):
     if not need:
         return {"grouped": [], "raw": []}
 
-    # Number the items so the LLM returns index→aisle mappings
-    # instead of rewriting the ingredient text (which it mangles).
     numbered = "\n".join(f"{i}: {item}" for i, item in enumerate(need))
 
     prompt = (
@@ -277,7 +457,6 @@ async def shopping_list(body: dict):
 
         log.info("Shopping list LLM response: %s", answer)
 
-        # Parse JSON — LLM might wrap in code fences
         cleaned = answer
         if "```" in cleaned:
             start = cleaned.index("```") + 3
@@ -286,9 +465,8 @@ async def shopping_list(body: dict):
             end = cleaned.index("```", start)
             cleaned = cleaned[start:end].strip()
 
-        mapping = json.loads(cleaned)  # {"0": "Produce", "1": "Meat/Seafood", ...}
+        mapping = json.loads(cleaned)
 
-        # Build grouped output from the mapping, using original item text
         aisles = {}
         assigned = set()
         for idx_str, aisle in mapping.items():
@@ -297,7 +475,6 @@ async def shopping_list(body: dict):
                 assigned.add(idx)
                 aisles.setdefault(aisle, []).append(need[idx])
 
-        # Catch any items the LLM didn't assign
         for idx, item in enumerate(need):
             if idx not in assigned:
                 aisles.setdefault("Other", []).append(item)
@@ -307,14 +484,19 @@ async def shopping_list(body: dict):
 
     except Exception as e:
         log.error("Shopping list LLM error: %s", e)
-        # Fallback: return ungrouped
         return {"grouped": [{"aisle": "All Items", "items": need}], "raw": need, "recipe": recipe_name}
 
 
 @app.websocket("/ws/voice")
 async def voice_endpoint(ws: WebSocket):
+    # Validate auth before accepting the WebSocket
+    user = get_ws_user(ws)
+    if user is None:
+        await ws.close(code=4001, reason="Not authenticated")
+        return
+
     await ws.accept()
-    log.info("WebSocket connected")
+    log.info("WebSocket connected (user=%s)", user)
 
     try:
         while True:
@@ -325,7 +507,6 @@ async def voice_endpoint(ws: WebSocket):
             text_query = msg.get("text", "")
             recipe_text = msg.get("recipe", "")
 
-            # Two modes: audio (PCM for STT) or text (pre-transcribed, e.g. from wake word)
             if text_query:
                 transcript = text_query.strip()
                 await ws.send_json({"type": "transcript", "text": transcript})
@@ -342,12 +523,10 @@ async def voice_endpoint(ws: WebSocket):
                 await ws.send_json({"type": "error", "message": "No audio or text data"})
                 continue
 
-            # Step 2: Query LLM
             await ws.send_json({"type": "status", "state": "thinking"})
             answer = await query_llm(transcript, recipe_text)
             await ws.send_json({"type": "answer", "text": answer})
 
-            # Step 3: Synthesize speech
             await ws.send_json({"type": "status", "state": "speaking"})
             try:
                 wav_bytes = await asyncio.to_thread(synthesize_speech, answer)
@@ -364,7 +543,7 @@ async def voice_endpoint(ws: WebSocket):
             await ws.send_json({"type": "status", "state": "idle"})
 
     except WebSocketDisconnect:
-        log.info("WebSocket disconnected")
+        log.info("WebSocket disconnected (user=%s)", user)
     except Exception as e:
         log.exception("WebSocket error: %s", e)
         try:
@@ -376,11 +555,12 @@ async def voice_endpoint(ws: WebSocket):
 STATIC_DIR = os.environ.get("STATIC_DIR", "/opt/chef/public")
 
 if __name__ == "__main__":
+    load_users()
+
     log.info("Preloading models...")
     get_whisper()
     get_piper()
 
-    # Serve Hugo static site if the directory exists (same-origin = no CORS/XSS issues)
     static_path = Path(STATIC_DIR)
     if static_path.is_dir():
         app.mount("/", StaticFiles(directory=str(static_path), html=True), name="static")

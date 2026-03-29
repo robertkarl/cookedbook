@@ -64,6 +64,7 @@ function generateShoppingList() {
   fetch('/api/shopping-list', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
     body: JSON.stringify({ need: need, have: have, recipe: recipeName })
   })
   .then(function (r) { return r.json(); })

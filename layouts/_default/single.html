@@ -40,6 +40,7 @@
 <script src="{{ "js/favorites.js" | relURL }}"></script>
 <script>initCheckboxes('{{ .File.UniqueID }}'); initDetailFavorite();</script>
 {{ with .Site.Params.chef_ws_url }}<script>window.CHEF_WS_URL = "{{ . }}";</script>{{ end }}
+<script src="{{ "js/auth.js" | relURL }}"></script>
 <script src="{{ "js/chef.js" | relURL }}"></script>
 <script src="{{ "js/chat.js" | relURL }}"></script>
 {{ end }}

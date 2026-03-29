@@ -589,7 +589,7 @@ footer {
   position: fixed;
   bottom: 1.5rem;
   right: 6.5rem;
-  width: 340px;
+  width: min(560px, calc(100vw - 8rem));
   max-height: 70vh;
   background: var(--card-bg);
   border: 2px solid var(--border);
@@ -658,6 +658,7 @@ footer {
 #chat-input-row {
   display: flex;
   border-top: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 #chat-input {
