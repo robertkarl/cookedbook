@@ -1,0 +1,11 @@
+# CookedBook Chef — user config
+# Add users here. Passwords are bcrypt hashes.
+#
+# Generate a hash:
+#   python3 -c "import bcrypt; print(bcrypt.hashpw(b'yourpassword', bcrypt.gensalt()).decode())"
+
+[users.robert]
+password_hash = "$2b$12$PLACEHOLDER_HASH_CHANGE_ME"
+
+[users.guest]
+password_hash = "$2b$12$PLACEHOLDER_HASH_CHANGE_ME"

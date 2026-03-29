@@ -5,7 +5,6 @@
 (function () {
   "use strict";
 
-  if (localStorage.getItem("chef-enabled") !== "1") return;
   if (!document.querySelector(".recipe-content")) return;
 
   var messages = []; // {role: "user"|"assistant", content: "..."}
@@ -65,6 +64,7 @@
     fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ messages: messages, recipe: getRecipeText() }),
     })
       .then(function (r) { return r.json(); })
@@ -126,12 +126,8 @@
     });
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () {
-      // Wait for chef.js to create #chef-container first
-      setTimeout(initChat, 50);
-    });
-  } else {
+  // Wait for auth, then for chef.js to create #chef-container
+  document.addEventListener("chef-auth-ready", function () {
     setTimeout(initChat, 50);
-  }
+  });
 })();

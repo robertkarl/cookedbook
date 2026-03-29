@@ -312,13 +312,10 @@
     });
   }
 
-  if (localStorage.getItem("chef-enabled") !== "1") return;
-
-  if (document.querySelector(".recipe-content")) {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initChef);
-    } else {
+  // Wait for auth check instead of localStorage gate
+  document.addEventListener("chef-auth-ready", function () {
+    if (document.querySelector(".recipe-content")) {
       initChef();
     }
-  }
+  });
 })();
