@@ -1,6 +1,6 @@
 ---
-title: "Steak with Sweet Potatoes and Scallions"
-summary: "One pan, with coffee-rub. Roasted with sweet potatos and scallions."
+title: "Steak with Yams and Scallions"
+summary: "One pan, coffee-rubbed strip steaks with roasted yams and scallions."
 prep_time: "15 min"
 cook_time: "40 min"
 servings: "4"
@@ -39,3 +39,15 @@ tags: ["beef", "weeknight"]
 - This is a sheet pan recipe, not cast iron — "one-pan" refers to the rimmed baking sheet.
 - The coffee rub adds browning and flavor without tasting like coffee.
 - Use the rest time — carryover will bring steaks to ~130°F for medium-rare.
+
+## Doubling
+
+Two sheet pans, different oven racks. Swap rack positions halfway through the potato roast (~12 min mark) so they brown evenly. The steaks still go on at the 25-minute mark — split them across both pans so they're not crowded.
+
+- **Yams:** 3 lbs, split across two pans. Don't overlap or they steam instead of roast.
+- **Steaks:** 4 strip steaks. Two per pan, spaced at least 2 inches apart.
+- **Scallions:** 12, split evenly. They cook fast so don't worry about rack position.
+- **Rub:** Double the full rub recipe. Mix in one batch — it keeps.
+- **Radish/lime:** Double. Toss right before serving.
+
+The main risk is oven crowding killing your airflow. If your oven runs cool or you're unsure, give the potatoes an extra 5 minutes before adding the steaks. Check steak temp at 10 minutes — with two pans the heat distribution shifts and they may cook faster or slower depending on your oven.
